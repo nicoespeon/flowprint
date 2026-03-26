@@ -44,5 +44,49 @@ greet(user);`;
 				└── user
 			`);
 		});
+
+		it("traces through assignment into parameter into call-site argument", () => {
+			const code = `function process(input: string) {
+	const [>]value = input;
+}
+const data = "hello";
+process(data);`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				value
+				└── input
+				    └── data
+			`);
+		});
+
+		it("traces a property access on an object", () => {
+			const code = `const obj = { name: "Alice" };
+const [>]value = obj.name;`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				value
+				└── obj.name
+			`);
+		});
+
+		it("traces a property access back through a function parameter", () => {
+			const code = `function process(data: { toto: string }) {
+	const [>]value = data.toto;
+}
+const input = { toto: "hello" };
+process(input);`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				value
+				└── data.toto
+				    └── input.toto
+			`);
+		});
 	});
 });

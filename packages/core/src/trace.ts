@@ -3,6 +3,7 @@ import {
 	Node,
 	SyntaxKind,
 	type ParameterDeclaration,
+	type PropertyAccessExpression,
 	type VariableDeclaration,
 } from "ts-morph";
 
@@ -72,11 +73,28 @@ export function traceDataFlow(options: TraceOptions): FlowGraph {
 }
 
 function traceUpstreamNode(node: Node): FlowNode {
-	const param = findParameterDeclaration(node);
-	if (param) return traceParameter(param);
+	if (Node.isIdentifier(node)) {
+		const definition = node.getDefinitionNodes().at(0);
+		if (definition) return traceUpstreamNode(definition);
 
-	const varDecl = findVariableDeclaration(node);
-	if (varDecl) return traceVariableDeclaration(varDecl);
+		const param = node.getFirstAncestorByKind(SyntaxKind.Parameter);
+		if (param) return traceParameter(param);
+
+		const varDecl = node.getFirstAncestorByKind(SyntaxKind.VariableDeclaration);
+		if (varDecl) return traceVariableDeclaration(varDecl);
+	}
+
+	if (Node.isPropertyAccessExpression(node)) {
+		return tracePropertyAccess(node);
+	}
+
+	if (Node.isVariableDeclaration(node)) {
+		return traceVariableDeclaration(node);
+	}
+
+	if (Node.isParameterDeclaration(node)) {
+		return traceParameter(node);
+	}
 
 	return { symbolName: node.getText(), kind: "reference", children: [] };
 }
@@ -84,14 +102,36 @@ function traceUpstreamNode(node: Node): FlowNode {
 function traceVariableDeclaration(varDecl: VariableDeclaration): FlowNode {
 	const name = varDecl.getName();
 	const initializer = varDecl.getInitializer();
+	if (!initializer)
+		return { symbolName: name, kind: "assignment", children: [] };
 
-	if (initializer && Node.isIdentifier(initializer)) {
-		const refs = initializer.getDefinitionNodes();
-		const children = refs.map((ref) => traceUpstreamNode(ref));
-		return { symbolName: name, kind: "assignment", children };
+	if (
+		Node.isIdentifier(initializer) ||
+		Node.isPropertyAccessExpression(initializer)
+	) {
+		return {
+			symbolName: name,
+			kind: "assignment",
+			children: [traceUpstreamNode(initializer)],
+		};
 	}
 
 	return { symbolName: name, kind: "assignment", children: [] };
+}
+
+function tracePropertyAccess(expr: PropertyAccessExpression): FlowNode {
+	const fullName = expr.getText();
+	const propertyName = expr.getName();
+
+	const objectTrace = traceUpstreamNode(expr.getExpression());
+	const children = objectTrace.children.map((child) => ({
+		...child,
+		symbolName: child.symbolName + "." + propertyName,
+		kind: "property-access" as const,
+		children: [] as FlowNode[],
+	}));
+
+	return { symbolName: fullName, kind: "property-access", children };
 }
 
 function traceParameter(param: ParameterDeclaration): FlowNode {
@@ -109,16 +149,6 @@ function traceParameter(param: ParameterDeclaration): FlowNode {
 
 	const children = callSiteArgs.map((arg) => traceUpstreamNode(arg));
 	return { symbolName: name, kind: "parameter", children };
-}
-
-function findVariableDeclaration(node: Node) {
-	if (Node.isVariableDeclaration(node)) return node;
-	return node.getFirstAncestorByKind(SyntaxKind.VariableDeclaration);
-}
-
-function findParameterDeclaration(node: Node) {
-	if (Node.isParameterDeclaration(node)) return node;
-	return node.getFirstAncestorByKind(SyntaxKind.Parameter);
 }
 
 function isFromCode(options: TraceOptions): options is TraceFromCode {
