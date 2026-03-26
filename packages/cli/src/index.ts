@@ -50,6 +50,10 @@ function run() {
 		);
 		process.exit(1);
 	}
+	if (direction === "downstream") {
+		console.error("Downstream tracing is not implemented yet.");
+		process.exit(1);
+	}
 
 	const format = parseFlag(args, "--format") ?? "text";
 	if (format !== "text" && format !== "json" && format !== "mermaid") {
