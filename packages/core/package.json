@@ -9,9 +9,29 @@
 			"types": "./dist/index.d.ts"
 		}
 	},
+	"files": [
+		"dist"
+	],
 	"scripts": {
 		"build": "tsc",
 		"typecheck": "tsc --noEmit"
+	},
+	"keywords": [
+		"typescript",
+		"data-flow",
+		"trace",
+		"static-analysis",
+		"ts-morph"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/nicoespeon/flowprint.git",
+		"directory": "packages/core"
+	},
+	"homepage": "https://github.com/nicoespeon/flowprint",
+	"bugs": "https://github.com/nicoespeon/flowprint/issues",
+	"engines": {
+		"node": ">=20"
 	},
 	"license": "MIT",
 	"dependencies": {
