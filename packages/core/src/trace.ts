@@ -86,15 +86,29 @@ export function traceDataFlow(options: TraceOptions): FlowGraph {
 		sourceFile = project.addSourceFileAtPath(options.filePath);
 	}
 
-	const pos = sourceFile.compilerNode.getPositionOfLineAndCharacter(
-		options.position.line - 1,
-		options.position.column,
-	);
+	const lineCount = sourceFile.getEndLineNumber();
+	if (options.position.line < 1 || options.position.line > lineCount) {
+		throw new Error(
+			`Line ${options.position.line} is out of range (file has ${lineCount} lines)`,
+		);
+	}
+
+	let pos;
+	try {
+		pos = sourceFile.compilerNode.getPositionOfLineAndCharacter(
+			options.position.line - 1,
+			options.position.column,
+		);
+	} catch {
+		throw new Error(
+			`Column ${options.position.column} is out of range at line ${options.position.line}`,
+		);
+	}
 
 	const node = sourceFile.getDescendantAtPos(pos);
 	if (!node) {
 		throw new Error(
-			`No node found at ${options.position.line}:${options.position.column}`,
+			`No traceable symbol at ${options.position.line}:${options.position.column}`,
 		);
 	}
 

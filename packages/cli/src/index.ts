@@ -66,12 +66,21 @@ function run() {
 		process.exit(1);
 	}
 
-	const graph = traceDataFlow({
-		filePath,
-		position: { line: parsed.line, column: parsed.column - 1 },
-		direction,
-		tsConfigFilePath: tsConfigFilePath ? resolve(tsConfigFilePath) : undefined,
-	});
+	let graph;
+	try {
+		graph = traceDataFlow({
+			filePath,
+			position: { line: parsed.line, column: parsed.column - 1 },
+			direction,
+			tsConfigFilePath: tsConfigFilePath
+				? resolve(tsConfigFilePath)
+				: undefined,
+		});
+	} catch (error) {
+		const message = error instanceof Error ? error.message : "Unknown error";
+		console.error(`Error: ${message}`);
+		process.exit(1);
+	}
 
 	if (format === "text") {
 		console.log(renderTextTree(graph, { verbose }));
