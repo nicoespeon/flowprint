@@ -7,7 +7,7 @@ import {
 	type VariableDeclaration,
 } from "ts-morph";
 
-type FlowDirection = "upstream" | "downstream";
+export type FlowDirection = "upstream" | "downstream";
 
 type FlowNodeKind =
 	| "assignment"
@@ -17,13 +17,17 @@ type FlowNodeKind =
 	| "return"
 	| "reference";
 
+export type FlowLocation = {
+	filePath: string;
+	line: number;
+	column: number;
+};
+
 export type FlowNode = {
 	symbolName: string;
 	kind: FlowNodeKind;
 	children: FlowNode[];
-	filePath?: string;
-	line?: number;
-	column?: number;
+	location?: FlowLocation;
 };
 
 export type FlowGraph = {
@@ -100,19 +104,19 @@ function traceUpstreamNode(node: Node): FlowNode {
 		symbolName: node.getText(),
 		kind: "reference",
 		children: [],
-		...locationOf(node),
+		location: locationOf(node),
 	};
 }
 
-function locationOf(node: Node) {
+function locationOf(node: Node): FlowLocation {
 	const sourceFile = node.getSourceFile();
 	const pos = node.getStart();
-	const lineAndChar =
+	const { line, character } =
 		sourceFile.compilerNode.getLineAndCharacterOfPosition(pos);
 	return {
 		filePath: sourceFile.getFilePath(),
-		line: lineAndChar.line + 1,
-		column: lineAndChar.character,
+		line: line + 1,
+		column: character,
 	};
 }
 
@@ -121,7 +125,7 @@ function traceVariableDeclaration(varDecl: VariableDeclaration): FlowNode {
 	const location = locationOf(varDecl.getNameNode());
 	const initializer = varDecl.getInitializer();
 	if (!initializer)
-		return { symbolName: name, kind: "assignment", children: [], ...location };
+		return { symbolName: name, kind: "assignment", children: [], location };
 
 	if (
 		Node.isIdentifier(initializer) ||
@@ -131,11 +135,11 @@ function traceVariableDeclaration(varDecl: VariableDeclaration): FlowNode {
 			symbolName: name,
 			kind: "assignment",
 			children: [traceUpstreamNode(initializer)],
-			...location,
+			location,
 		};
 	}
 
-	return { symbolName: name, kind: "assignment", children: [], ...location };
+	return { symbolName: name, kind: "assignment", children: [], location };
 }
 
 function tracePropertyAccess(expr: PropertyAccessExpression): FlowNode {
@@ -155,7 +159,7 @@ function tracePropertyAccess(expr: PropertyAccessExpression): FlowNode {
 		symbolName: fullName,
 		kind: "property-access",
 		children,
-		...location,
+		location,
 	};
 }
 
@@ -164,7 +168,7 @@ function traceParameter(param: ParameterDeclaration): FlowNode {
 	const location = locationOf(param.getNameNode());
 	const fn = param.getFirstAncestorByKind(SyntaxKind.FunctionDeclaration);
 	if (!fn)
-		return { symbolName: name, kind: "parameter", children: [], ...location };
+		return { symbolName: name, kind: "parameter", children: [], location };
 
 	const paramIndex = fn.getParameters().indexOf(param);
 	const callSiteArgs = fn
@@ -175,7 +179,7 @@ function traceParameter(param: ParameterDeclaration): FlowNode {
 		.filter((arg): arg is Node => arg !== undefined);
 
 	const children = callSiteArgs.map((arg) => traceUpstreamNode(arg));
-	return { symbolName: name, kind: "parameter", children, ...location };
+	return { symbolName: name, kind: "parameter", children, location };
 }
 
 function isFromCode(options: TraceOptions): options is TraceFromCode {

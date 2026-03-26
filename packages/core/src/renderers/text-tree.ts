@@ -34,8 +34,8 @@ function renderNode(
 }
 
 function formatNodeLabel(node: FlowNode, options: RenderOptions): string {
-	if (options.verbose && node.line !== undefined && node.column !== undefined) {
-		return `${node.symbolName} (${node.line}:${node.column})`;
+	if (options.verbose && node.location) {
+		return `${node.symbolName} (${node.location.line}:${node.location.column})`;
 	}
 
 	return node.symbolName;

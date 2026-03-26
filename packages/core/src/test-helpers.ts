@@ -1,24 +1,36 @@
-import { traceDataFlow } from "./trace.js";
+import { traceDataFlow, type FlowDirection } from "./trace.js";
 import { renderTextTree } from "./renderers/text-tree.js";
 
 const CURSOR_MARKER = "[>]";
 
+type TraceHelperOptions = {
+	direction: FlowDirection;
+	verbose?: boolean;
+};
+
 export function traceUpstream(codeWithCursor: string) {
-	const { code, position } = extractCursor(codeWithCursor);
-	const graph = traceDataFlow({ code, position, direction: "upstream" });
-	return renderTextTree(graph);
+	return traceAndRender(codeWithCursor, { direction: "upstream" });
 }
 
 export function traceUpstreamVerbose(codeWithCursor: string) {
-	const { code, position } = extractCursor(codeWithCursor);
-	const graph = traceDataFlow({ code, position, direction: "upstream" });
-	return renderTextTree(graph, { verbose: true });
+	return traceAndRender(codeWithCursor, {
+		direction: "upstream",
+		verbose: true,
+	});
 }
 
 export function traceDownstream(codeWithCursor: string) {
+	return traceAndRender(codeWithCursor, { direction: "downstream" });
+}
+
+function traceAndRender(codeWithCursor: string, options: TraceHelperOptions) {
 	const { code, position } = extractCursor(codeWithCursor);
-	const graph = traceDataFlow({ code, position, direction: "downstream" });
-	return renderTextTree(graph);
+	const graph = traceDataFlow({
+		code,
+		position,
+		direction: options.direction,
+	});
+	return renderTextTree(graph, { verbose: options.verbose });
 }
 
 function extractCursor(codeWithCursor: string) {
