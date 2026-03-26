@@ -49,12 +49,12 @@ function formatLocation(location: FlowLocation, showFilePath?: boolean) {
 }
 
 function hasMultipleFiles(node: FlowNode): boolean {
-	const files = collectFilePaths(node, new Set<string>());
-	return files.size > 1;
+	const paths = new Set<string>();
+	collectFilePaths(node, paths);
+	return paths.size > 1;
 }
 
-function collectFilePaths(node: FlowNode, paths: Set<string>): Set<string> {
+function collectFilePaths(node: FlowNode, paths: Set<string>): void {
 	if (node.location) paths.add(node.location.filePath);
 	node.children.forEach((child) => collectFilePaths(child, paths));
-	return paths;
 }

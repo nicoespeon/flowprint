@@ -67,11 +67,14 @@ export function traceDataFlow(options: TraceOptions): FlowGraph {
 		compilerOptions: { strict: true },
 	});
 
-	const sourceFile = isFromMultipleFiles(options)
-		? createMultiFileProject(project, options)
-		: isFromCode(options)
-			? project.createSourceFile("input.ts", options.code)
-			: project.addSourceFileAtPath(options.filePath);
+	let sourceFile;
+	if (isFromMultipleFiles(options)) {
+		sourceFile = addMultipleFiles(project, options);
+	} else if (isFromCode(options)) {
+		sourceFile = project.createSourceFile("input.ts", options.code);
+	} else {
+		sourceFile = project.addSourceFileAtPath(options.filePath);
+	}
 
 	const pos = sourceFile.compilerNode.getPositionOfLineAndCharacter(
 		options.position.line - 1,
@@ -195,10 +198,7 @@ function traceParameter(param: ParameterDeclaration): FlowNode {
 	return { symbolName: name, kind: "parameter", children, location };
 }
 
-function createMultiFileProject(
-	project: Project,
-	options: TraceFromMultipleFiles,
-) {
+function addMultipleFiles(project: Project, options: TraceFromMultipleFiles) {
 	for (const [path, content] of Object.entries(options.files)) {
 		project.createSourceFile(path, content);
 	}

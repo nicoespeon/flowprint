@@ -25,16 +25,11 @@ export function traceDownstream(input: CodeInput) {
 function traceAndRender(input: CodeInput, options: TraceHelperOptions) {
 	const parsed =
 		typeof input === "string"
-			? parseSingleFile(input)
+			? extractCursor(input)
 			: parseMultipleFiles(input);
 
 	const graph = traceDataFlow({ ...parsed, direction: options.direction });
 	return renderTextTree(graph, { verbose: options.verbose });
-}
-
-function parseSingleFile(codeWithCursor: string) {
-	const { code, position } = extractCursor(codeWithCursor);
-	return { code, position };
 }
 
 function parseMultipleFiles(filesWithCursor: Record<string, string>) {
