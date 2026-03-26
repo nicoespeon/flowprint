@@ -2,6 +2,7 @@ import {
 	Project,
 	Node,
 	SyntaxKind,
+	type CallExpression,
 	type ParameterDeclaration,
 	type PropertyAccessExpression,
 	type VariableDeclaration,
@@ -113,6 +114,10 @@ function traceUpstreamNode(node: Node): FlowNode {
 		if (varDecl) return traceVariableDeclaration(varDecl);
 	}
 
+	if (Node.isCallExpression(node)) {
+		return traceCallExpression(node);
+	}
+
 	if (Node.isPropertyAccessExpression(node)) {
 		return tracePropertyAccess(node);
 	}
@@ -154,7 +159,8 @@ function traceVariableDeclaration(varDecl: VariableDeclaration): FlowNode {
 
 	if (
 		Node.isIdentifier(initializer) ||
-		Node.isPropertyAccessExpression(initializer)
+		Node.isPropertyAccessExpression(initializer) ||
+		Node.isCallExpression(initializer)
 	) {
 		return {
 			symbolName: name,
@@ -165,6 +171,21 @@ function traceVariableDeclaration(varDecl: VariableDeclaration): FlowNode {
 	}
 
 	return { symbolName: name, kind: "assignment", children: [], location };
+}
+
+function traceCallExpression(call: CallExpression): FlowNode {
+	const expr = call.getExpression();
+
+	if (Node.isPropertyAccessExpression(expr)) {
+		return traceUpstreamNode(expr.getExpression());
+	}
+
+	return {
+		symbolName: call.getText(),
+		kind: "reference",
+		children: [],
+		location: locationOf(call),
+	};
 }
 
 function tracePropertyAccess(expr: PropertyAccessExpression): FlowNode {

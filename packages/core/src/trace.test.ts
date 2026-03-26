@@ -178,6 +178,34 @@ process(input);`,
 			`);
 		});
 
+		it("traces through a method call to its receiver", () => {
+			const code = `const items = [1, 2, 3];
+const [>]result = items.filter(x => x > 1);`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				result
+				└── items
+			`);
+		});
+
+		it("traces a method call on a parameter back to call-site arguments", () => {
+			const code = `function process(input: string) {
+	const [>]trimmed = input.trim();
+}
+const raw = "  hello  ";
+process(raw);`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				trimmed
+				└── input
+				    └── raw
+			`);
+		});
+
 		it("traces property access through a parameter with multiple callers", () => {
 			const code = `function handleAdInt(data: { toto: string }) {
 	const [>]toto = data.toto;
