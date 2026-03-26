@@ -88,5 +88,54 @@ process(input);`;
 				    └── input.toto
 			`);
 		});
+
+		it("traces a parameter with multiple call sites", () => {
+			const code = `function handleAdInt([>]data: { toto: string }) {
+	console.log(data.toto);
+}
+
+function handleAddFromMQTT() {
+	const mqttData = { toto: "from mqtt" };
+	handleAdInt(mqttData);
+}
+
+function handleAd() {
+	const wsData = { toto: "from ws" };
+	handleAdInt(wsData);
+}`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				data
+				├── mqttData
+				└── wsData
+			`);
+		});
+
+		it("traces the full Notion example: variable through property access and multiple callers", () => {
+			const code = `function handleAdInt(data: { toto: string }) {
+	const [>]toto = data.toto;
+}
+
+function handleAddFromMQTT(ctx: { query: { tot: string } }) {
+	const data = { toto: ctx.query.tot };
+	handleAdInt(data);
+}
+
+function handleAd() {
+	const data = { toto: "hello" };
+	handleAdInt(data);
+}`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				toto
+				└── data.toto
+				    ├── data.toto
+				    └── data.toto
+			`);
+		});
 	});
 });
