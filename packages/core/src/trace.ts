@@ -1,4 +1,10 @@
-import { Project, Node, SyntaxKind } from "ts-morph";
+import {
+	Project,
+	Node,
+	SyntaxKind,
+	type ParameterDeclaration,
+	type VariableDeclaration,
+} from "ts-morph";
 
 type FlowDirection = "upstream" | "downstream";
 
@@ -66,18 +72,16 @@ export function traceDataFlow(options: TraceOptions): FlowGraph {
 }
 
 function traceUpstreamNode(node: Node): FlowNode {
-	const varDecl =
-		node.getFirstAncestorByKind(SyntaxKind.VariableDeclaration) ??
-		(Node.isVariableDeclaration(node) ? node : undefined);
+	const param = findParameterDeclaration(node);
+	if (param) return traceParameter(param);
 
-	if (!varDecl) {
-		return {
-			symbolName: node.getText(),
-			kind: "reference",
-			children: [],
-		};
-	}
+	const varDecl = findVariableDeclaration(node);
+	if (varDecl) return traceVariableDeclaration(varDecl);
 
+	return { symbolName: node.getText(), kind: "reference", children: [] };
+}
+
+function traceVariableDeclaration(varDecl: VariableDeclaration): FlowNode {
 	const name = varDecl.getName();
 	const initializer = varDecl.getInitializer();
 
@@ -88,6 +92,33 @@ function traceUpstreamNode(node: Node): FlowNode {
 	}
 
 	return { symbolName: name, kind: "assignment", children: [] };
+}
+
+function traceParameter(param: ParameterDeclaration): FlowNode {
+	const name = param.getName();
+	const fn = param.getFirstAncestorByKind(SyntaxKind.FunctionDeclaration);
+	if (!fn) return { symbolName: name, kind: "parameter", children: [] };
+
+	const paramIndex = fn.getParameters().indexOf(param);
+	const callSiteArgs = fn
+		.findReferencesAsNodes()
+		.map((ref) => ref.getParent())
+		.filter(Node.isCallExpression)
+		.map((call) => call.getArguments()[paramIndex])
+		.filter((arg): arg is Node => arg !== undefined);
+
+	const children = callSiteArgs.map((arg) => traceUpstreamNode(arg));
+	return { symbolName: name, kind: "parameter", children };
+}
+
+function findVariableDeclaration(node: Node) {
+	if (Node.isVariableDeclaration(node)) return node;
+	return node.getFirstAncestorByKind(SyntaxKind.VariableDeclaration);
+}
+
+function findParameterDeclaration(node: Node) {
+	if (Node.isParameterDeclaration(node)) return node;
+	return node.getFirstAncestorByKind(SyntaxKind.Parameter);
 }
 
 function isFromCode(options: TraceOptions): options is TraceFromCode {

@@ -15,5 +15,34 @@ const [>]target = source;`;
 				└── source
 			`);
 		});
+
+		it("traces through chained variable assignments", () => {
+			const code = `const a = "hello";
+const b = a;
+const [>]c = b;`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				c
+				└── b
+				    └── a
+			`);
+		});
+
+		it("traces a function parameter to its call-site argument", () => {
+			const code = `function greet([>]name: string) {
+	console.log(name);
+}
+const user = "Alice";
+greet(user);`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				name
+				└── user
+			`);
+		});
 	});
 });
