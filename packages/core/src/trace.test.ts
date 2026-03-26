@@ -149,6 +149,35 @@ function handleAd() {
 			`);
 		});
 
+		it("traces an imported variable across files", () => {
+			const result = traceUpstream({
+				"src/a.ts": `import { source } from "./b";
+const [>]target = source;`,
+				"src/b.ts": `export const source = "hello";`,
+			});
+
+			expect(result).toBe(dedent`
+				target
+				└── source
+			`);
+		});
+
+		it("traces a function parameter across files to the call-site argument", () => {
+			const result = traceUpstreamVerbose({
+				"src/handler.ts": `import { process } from "./service";
+const input = { toto: "hello" };
+process(input);`,
+				"src/service.ts": `export function process([>]data: { toto: string }) {
+	console.log(data.toto);
+}`,
+			});
+
+			expect(result).toBe(dedent`
+				data (/src/service.ts:1:24)
+				└── input (/src/handler.ts:2:6)
+			`);
+		});
+
 		it("traces property access through a parameter with multiple callers", () => {
 			const code = `function handleAdInt(data: { toto: string }) {
 	const [>]toto = data.toto;

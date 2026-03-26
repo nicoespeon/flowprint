@@ -52,13 +52,26 @@ type TraceFromCode = {
 	direction: FlowDirection;
 };
 
-type TraceOptions = TraceFromFile | TraceFromCode;
+type TraceFromMultipleFiles = {
+	files: Record<string, string>;
+	filePath: string;
+	position: Position;
+	direction: FlowDirection;
+};
+
+type TraceOptions = TraceFromFile | TraceFromCode | TraceFromMultipleFiles;
 
 export function traceDataFlow(options: TraceOptions): FlowGraph {
-	const project = new Project({ useInMemoryFileSystem: true });
-	const sourceFile = isFromCode(options)
-		? project.createSourceFile("input.ts", options.code)
-		: project.addSourceFileAtPath(options.filePath);
+	const project = new Project({
+		useInMemoryFileSystem: isFromCode(options) || isFromMultipleFiles(options),
+		compilerOptions: { strict: true },
+	});
+
+	const sourceFile = isFromMultipleFiles(options)
+		? createMultiFileProject(project, options)
+		: isFromCode(options)
+			? project.createSourceFile("input.ts", options.code)
+			: project.addSourceFileAtPath(options.filePath);
 
 	const pos = sourceFile.compilerNode.getPositionOfLineAndCharacter(
 		options.position.line - 1,
@@ -182,6 +195,26 @@ function traceParameter(param: ParameterDeclaration): FlowNode {
 	return { symbolName: name, kind: "parameter", children, location };
 }
 
+function createMultiFileProject(
+	project: Project,
+	options: TraceFromMultipleFiles,
+) {
+	for (const [path, content] of Object.entries(options.files)) {
+		project.createSourceFile(path, content);
+	}
+	const sourceFile = project.getSourceFile(options.filePath);
+	if (!sourceFile) {
+		throw new Error(`File not found in project: ${options.filePath}`);
+	}
+	return sourceFile;
+}
+
 function isFromCode(options: TraceOptions): options is TraceFromCode {
 	return "code" in options;
+}
+
+function isFromMultipleFiles(
+	options: TraceOptions,
+): options is TraceFromMultipleFiles {
+	return "files" in options;
 }

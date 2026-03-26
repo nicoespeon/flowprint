@@ -1,4 +1,4 @@
-import type { FlowGraph, FlowNode } from "../trace.js";
+import type { FlowGraph, FlowNode, FlowLocation } from "../trace.js";
 
 type RenderOptions = {
 	verbose?: boolean;
@@ -8,13 +8,16 @@ export function renderTextTree(
 	graph: FlowGraph,
 	options: RenderOptions = {},
 ): string {
-	return renderNode(graph.root, "", options);
+	const showFilePath = options.verbose && hasMultipleFiles(graph.root);
+	return renderNode(graph.root, "", { ...options, showFilePath });
 }
+
+type ResolvedOptions = RenderOptions & { showFilePath?: boolean };
 
 function renderNode(
 	node: FlowNode,
 	prefix: string,
-	options: RenderOptions,
+	options: ResolvedOptions,
 ): string {
 	let result = formatNodeLabel(node, options);
 
@@ -33,10 +36,25 @@ function renderNode(
 	return result;
 }
 
-function formatNodeLabel(node: FlowNode, options: RenderOptions): string {
-	if (options.verbose && node.location) {
-		return `${node.symbolName} (${node.location.line}:${node.location.column})`;
-	}
+function formatNodeLabel(node: FlowNode, options: ResolvedOptions): string {
+	if (!options.verbose || !node.location) return node.symbolName;
 
-	return node.symbolName;
+	const locationStr = formatLocation(node.location, options.showFilePath);
+	return `${node.symbolName} (${locationStr})`;
+}
+
+function formatLocation(location: FlowLocation, showFilePath?: boolean) {
+	const prefix = showFilePath ? `${location.filePath}:` : "";
+	return `${prefix}${location.line}:${location.column}`;
+}
+
+function hasMultipleFiles(node: FlowNode): boolean {
+	const files = collectFilePaths(node, new Set<string>());
+	return files.size > 1;
+}
+
+function collectFilePaths(node: FlowNode, paths: Set<string>): Set<string> {
+	if (node.location) paths.add(node.location.filePath);
+	node.children.forEach((child) => collectFilePaths(child, paths));
+	return paths;
 }
