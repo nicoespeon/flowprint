@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import dedent from "string-dedent";
-import { traceUpstream } from "./test-helpers.js";
+import { traceUpstream, traceUpstreamVerbose } from "./test-helpers.js";
 
 describe("traceDataFlow", () => {
 	describe("upstream (where does data come from)", () => {
@@ -113,7 +113,43 @@ function handleAd() {
 			`);
 		});
 
-		it("traces the full Notion example: variable through property access and multiple callers", () => {
+		it("shows location info in verbose mode", () => {
+			const code = `const source = "hello";
+const [>]target = source;`;
+
+			const result = traceUpstreamVerbose(code);
+
+			expect(result).toBe(dedent`
+				target (2:6)
+				└── source (1:6)
+			`);
+		});
+
+		it("disambiguates same-named nodes with location info in verbose mode", () => {
+			const code = `function handleAdInt([>]data: { toto: string }) {
+	console.log(data.toto);
+}
+
+function handleAddFromMQTT() {
+	const data = { toto: "from mqtt" };
+	handleAdInt(data);
+}
+
+function handleAd() {
+	const data = { toto: "from ws" };
+	handleAdInt(data);
+}`;
+
+			const result = traceUpstreamVerbose(code);
+
+			expect(result).toBe(dedent`
+				data (1:21)
+				├── data (6:7)
+				└── data (11:7)
+			`);
+		});
+
+		it("traces property access through a parameter with multiple callers", () => {
 			const code = `function handleAdInt(data: { toto: string }) {
 	const [>]toto = data.toto;
 }
@@ -128,13 +164,13 @@ function handleAd() {
 	handleAdInt(data);
 }`;
 
-			const result = traceUpstream(code);
+			const result = traceUpstreamVerbose(code);
 
 			expect(result).toBe(dedent`
-				toto
-				└── data.toto
-				    ├── data.toto
-				    └── data.toto
+				toto (2:7)
+				└── data.toto (2:14)
+				    ├── data.toto (6:7)
+				    └── data.toto (11:7)
 			`);
 		});
 	});

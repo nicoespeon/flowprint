@@ -9,6 +9,12 @@ export function traceUpstream(codeWithCursor: string) {
 	return renderTextTree(graph);
 }
 
+export function traceUpstreamVerbose(codeWithCursor: string) {
+	const { code, position } = extractCursor(codeWithCursor);
+	const graph = traceDataFlow({ code, position, direction: "upstream" });
+	return renderTextTree(graph, { verbose: true });
+}
+
 export function traceDownstream(codeWithCursor: string) {
 	const { code, position } = extractCursor(codeWithCursor);
 	const graph = traceDataFlow({ code, position, direction: "downstream" });
