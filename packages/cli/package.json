@@ -1,0 +1,17 @@
+{
+	"name": "flowprint",
+	"version": "0.0.0",
+	"description": "Trace data flow across TypeScript codebases",
+	"type": "module",
+	"bin": {
+		"flowprint": "./dist/index.js"
+	},
+	"scripts": {
+		"build": "tsc",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@flowprint/core": "workspace:*"
+	},
+	"license": "MIT"
+}

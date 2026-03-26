@@ -1,0 +1,14 @@
+{
+	"name": "@flowprint/vscode",
+	"version": "0.0.0",
+	"description": "VS Code extension for flowprint data flow tracing",
+	"type": "module",
+	"scripts": {
+		"build": "tsc",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@flowprint/core": "workspace:*"
+	},
+	"license": "MIT"
+}
