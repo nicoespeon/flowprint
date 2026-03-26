@@ -44,6 +44,7 @@ type TraceFromFile = {
 	filePath: string;
 	position: Position;
 	direction: FlowDirection;
+	tsConfigFilePath?: string;
 };
 
 type TraceFromCode = {
@@ -62,17 +63,25 @@ type TraceFromMultipleFiles = {
 type TraceOptions = TraceFromFile | TraceFromCode | TraceFromMultipleFiles;
 
 export function traceDataFlow(options: TraceOptions): FlowGraph {
-	const project = new Project({
-		useInMemoryFileSystem: isFromCode(options) || isFromMultipleFiles(options),
-		compilerOptions: { strict: true },
-	});
-
+	let project;
 	let sourceFile;
+
 	if (isFromMultipleFiles(options)) {
+		project = new Project({
+			useInMemoryFileSystem: true,
+			compilerOptions: { strict: true },
+		});
 		sourceFile = addMultipleFiles(project, options);
 	} else if (isFromCode(options)) {
+		project = new Project({
+			useInMemoryFileSystem: true,
+			compilerOptions: { strict: true },
+		});
 		sourceFile = project.createSourceFile("input.ts", options.code);
 	} else {
+		project = new Project({
+			tsConfigFilePath: options.tsConfigFilePath,
+		});
 		sourceFile = project.addSourceFileAtPath(options.filePath);
 	}
 
