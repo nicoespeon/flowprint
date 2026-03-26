@@ -138,46 +138,29 @@ function traceUpstreamNode(node: Node): FlowNode {
 	};
 }
 
-function locationOf(node: Node): FlowLocation {
-	const sourceFile = node.getSourceFile();
-	const pos = node.getStart();
-	const { line, character } =
-		sourceFile.compilerNode.getLineAndCharacterOfPosition(pos);
-	return {
-		filePath: sourceFile.getFilePath(),
-		line: line + 1,
-		column: character,
-	};
-}
-
 function traceVariableDeclaration(varDecl: VariableDeclaration): FlowNode {
 	const name = varDecl.getName();
 	const location = locationOf(varDecl.getNameNode());
 	const initializer = varDecl.getInitializer();
-	if (!initializer)
-		return { symbolName: name, kind: "assignment", children: [], location };
 
-	if (
-		Node.isIdentifier(initializer) ||
-		Node.isPropertyAccessExpression(initializer) ||
-		Node.isCallExpression(initializer)
-	) {
-		return {
-			symbolName: name,
-			kind: "assignment",
-			children: [traceUpstreamNode(initializer)],
-			location,
-		};
-	}
+	const isTraceableInitializer =
+		initializer !== undefined &&
+		(Node.isIdentifier(initializer) ||
+			Node.isPropertyAccessExpression(initializer) ||
+			Node.isCallExpression(initializer));
 
-	return { symbolName: name, kind: "assignment", children: [], location };
+	const children = isTraceableInitializer
+		? [traceUpstreamNode(initializer)]
+		: [];
+
+	return { symbolName: name, kind: "assignment", children, location };
 }
 
 function traceCallExpression(call: CallExpression): FlowNode {
-	const expr = call.getExpression();
+	const callee = call.getExpression();
 
-	if (Node.isPropertyAccessExpression(expr)) {
-		return traceUpstreamNode(expr.getExpression());
+	if (Node.isPropertyAccessExpression(callee)) {
+		return traceUpstreamNode(callee.getExpression());
 	}
 
 	return {
@@ -226,6 +209,18 @@ function traceParameter(param: ParameterDeclaration): FlowNode {
 
 	const children = callSiteArgs.map((arg) => traceUpstreamNode(arg));
 	return { symbolName: name, kind: "parameter", children, location };
+}
+
+function locationOf(node: Node): FlowLocation {
+	const sourceFile = node.getSourceFile();
+	const pos = node.getStart();
+	const { line, character } =
+		sourceFile.compilerNode.getLineAndCharacterOfPosition(pos);
+	return {
+		filePath: sourceFile.getFilePath(),
+		line: line + 1,
+		column: character,
+	};
 }
 
 function addMultipleFiles(project: Project, options: TraceFromMultipleFiles) {
