@@ -30,7 +30,8 @@ TDD loop:
 1. Write failing test(s) that illustrate the missing behavior
 2. Stop and ask the human to review and adjust the tests
 3. Implement the minimal code to make the tests pass
-4. Spawn a fresh subagent to review and refactor the implementation (clean context window, like a code review with no bias from the implementation process)
+4. Commit (this is the safety net before refactoring)
+5. Spawn a fresh subagent to review and refactor the implementation (clean context window, like a code review with no bias from the implementation process). The subagent must not modify tests without asking the human first.
 
 Tests live next to source files (`foo.ts` / `foo.test.ts`).
 
