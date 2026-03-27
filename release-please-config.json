@@ -1,0 +1,9 @@
+{
+	"packages": {
+		"packages/cli": {
+			"release-type": "node",
+			"component": "flowprint",
+			"changelog-path": "CHANGELOG.md"
+		}
+	}
+}

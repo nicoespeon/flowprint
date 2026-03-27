@@ -1,0 +1,21 @@
+{
+	"projectName": "flowprint",
+	"projectOwner": "nicoespeon",
+	"repoType": "github",
+	"repoHost": "https://github.com",
+	"files": ["README.md"],
+	"imageSize": 100,
+	"commit": false,
+	"commitConvention": "angular",
+	"contributorsPerLine": 7,
+	"badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=for-the-badge)](#contributors)",
+	"contributors": [
+		{
+			"login": "nicoespeon",
+			"name": "Nicolas Carlo",
+			"avatar_url": "https://avatars.githubusercontent.com/u/1094774?v=4",
+			"profile": "https://github.com/nicoespeon",
+			"contributions": ["code", "ideas", "doc"]
+		}
+	]
+}

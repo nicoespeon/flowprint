@@ -82,6 +82,26 @@ flowprint follows data upstream through:
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions and development workflow.
 
+<!-- ALL-CONTRIBUTORS-BADGE:START -->
+
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=for-the-badge)](#contributors)
+
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
+
+### Contributors
+
+Thanks to these people for contributing:
+
+<!-- ALL-CONTRIBUTORS-LIST:START -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/nicoespeon"><img src="https://avatars.githubusercontent.com/u/1094774?v=4" width="100px;" alt="Nicolas Carlo"/><br /><sub><b>Nicolas Carlo</b></sub></a></td>
+    </tr>
+  </tbody>
+</table>
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
 ## License
 
 [MIT](LICENSE)

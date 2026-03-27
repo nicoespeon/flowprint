@@ -10,7 +10,7 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "tsc",
+		"build": "node esbuild.config.js",
 		"typecheck": "tsc --noEmit"
 	},
 	"keywords": [
@@ -31,8 +31,15 @@
 	"engines": {
 		"node": ">=20"
 	},
+	"publishConfig": {
+		"access": "public",
+		"provenance": true
+	},
 	"license": "MIT",
 	"dependencies": {
+		"ts-morph": "27.0.2"
+	},
+	"devDependencies": {
 		"@flowprint/core": "workspace:*"
 	}
 }

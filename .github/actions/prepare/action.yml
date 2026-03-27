@@ -1,0 +1,15 @@
+name: Prepare
+description: Set up pnpm and Node.js, install dependencies
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version-file: ".tool-versions"
+        cache: "pnpm"
+
+    - run: pnpm install --frozen-lockfile
+      shell: bash
