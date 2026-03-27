@@ -196,24 +196,19 @@ function traceBindingElement(
 	element: BindingElement,
 	visited: Set<string>,
 ): FlowNode {
-	const name = element.getPropertyNameNode()
-		? element.getName()
-		: (element.getPropertyNameNode()?.getText() ?? element.getName());
+	const name = element.getName();
 	const location = locationOf(element.getNameNode());
 
-	const varDecl = element.getFirstAncestorByKind(
-		SyntaxKind.VariableDeclaration,
-	);
-	if (varDecl) {
-		const initializer = varDecl.getInitializer();
-		if (initializer) {
-			return {
-				symbolName: name,
-				kind: "destructuring",
-				children: [traceUpstreamNode(initializer, visited)],
-				location,
-			};
-		}
+	const initializer = element
+		.getFirstAncestorByKind(SyntaxKind.VariableDeclaration)
+		?.getInitializer();
+	if (initializer) {
+		return {
+			symbolName: name,
+			kind: "destructuring",
+			children: [traceUpstreamNode(initializer, visited)],
+			location,
+		};
 	}
 
 	const param = element.getFirstAncestorByKind(SyntaxKind.Parameter);
