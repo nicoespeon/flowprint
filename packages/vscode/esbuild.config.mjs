@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const watch = process.argv.includes("--watch");
+const production = process.argv.includes("--production");
 
 const buildOptions = {
 	entryPoints: ["src/extension.ts"],
@@ -13,7 +14,8 @@ const buildOptions = {
 	format: "cjs",
 	outfile: "dist/extension.js",
 	external: ["vscode"],
-	sourcemap: true,
+	minify: production,
+	sourcemap: !production,
 	alias: {
 		"@flowprint/core": resolve(__dirname, "../core/src/index.ts"),
 	},
