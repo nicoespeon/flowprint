@@ -2,6 +2,7 @@ import {
 	Project,
 	Node,
 	SyntaxKind,
+	type BindingElement,
 	type CallExpression,
 	type ParameterDeclaration,
 	type PropertyAccessExpression,
@@ -123,6 +124,11 @@ function nodeKey(node: Node): string {
 
 function traceUpstreamNode(node: Node, visited: Set<string>): FlowNode {
 	if (Node.isIdentifier(node)) {
+		const bindingElement = node.getFirstAncestorByKind(
+			SyntaxKind.BindingElement,
+		);
+		if (bindingElement) return traceBindingElement(bindingElement, visited);
+
 		const definition = node.getDefinitionNodes().at(0);
 		if (definition) return traceUpstreamNode(definition, visited);
 
@@ -139,6 +145,10 @@ function traceUpstreamNode(node: Node, visited: Set<string>): FlowNode {
 
 	if (Node.isPropertyAccessExpression(node)) {
 		return tracePropertyAccess(node, visited);
+	}
+
+	if (Node.isBindingElement(node)) {
+		return traceBindingElement(node, visited);
 	}
 
 	if (Node.isVariableDeclaration(node)) {
@@ -180,6 +190,40 @@ function traceVariableDeclaration(
 		: [];
 
 	return { symbolName: name, kind: "assignment", children, location };
+}
+
+function traceBindingElement(
+	element: BindingElement,
+	visited: Set<string>,
+): FlowNode {
+	const name = element.getPropertyNameNode()
+		? element.getName()
+		: (element.getPropertyNameNode()?.getText() ?? element.getName());
+	const location = locationOf(element.getNameNode());
+
+	const varDecl = element.getFirstAncestorByKind(
+		SyntaxKind.VariableDeclaration,
+	);
+	if (varDecl) {
+		const initializer = varDecl.getInitializer();
+		if (initializer) {
+			return {
+				symbolName: name,
+				kind: "destructuring",
+				children: [traceUpstreamNode(initializer, visited)],
+				location,
+			};
+		}
+	}
+
+	const param = element.getFirstAncestorByKind(SyntaxKind.Parameter);
+	if (param) {
+		const callSiteArgs = findCallSiteArgs(param);
+		const children = callSiteArgs.map((arg) => traceUpstreamNode(arg, visited));
+		return { symbolName: name, kind: "destructuring", children, location };
+	}
+
+	return { symbolName: name, kind: "destructuring", children: [], location };
 }
 
 function traceCallExpression(

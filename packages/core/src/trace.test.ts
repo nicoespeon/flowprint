@@ -252,6 +252,45 @@ process(([>]value) => {
 			`);
 		});
 
+		it("traces a destructured variable to its source object", () => {
+			const code = `const obj = { name: "Alice", age: 30 };
+const { [>]name } = obj;`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				name
+				└── obj
+			`);
+		});
+
+		it("traces a destructured parameter to its call-site argument", () => {
+			const code = `function greet({ [>]name }: { name: string }) {
+	console.log(name);
+}
+const user = { name: "Alice" };
+greet(user);`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				name
+				└── user
+			`);
+		});
+
+		it("traces a renamed destructured variable", () => {
+			const code = `const obj = { name: "Alice" };
+const { name: [>]userName } = obj;`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				userName
+				└── obj
+			`);
+		});
+
 		it("traces property access through a parameter with multiple callers", () => {
 			const code = `function handleAdInt(data: { toto: string }) {
 	const [>]toto = data.toto;
