@@ -27,7 +27,7 @@
 				{
 					"command": "flowprint.traceUpstream",
 					"when": "editorLangId == typescript || editorLangId == typescriptreact",
-					"group": "navigation@100"
+					"group": "0_navigation@5"
 				}
 			]
 		},
