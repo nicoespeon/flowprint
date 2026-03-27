@@ -1,4 +1,4 @@
-import { traceDataFlow, type FlowDirection, type FlowGraph } from "./trace.js";
+import { traceDataFlow, type FlowDirection } from "./trace.js";
 import { renderTextTree } from "./renderers/text-tree.js";
 import { renderJSON } from "./renderers/json.js";
 import { renderMermaid } from "./renderers/mermaid.js";
@@ -27,7 +27,7 @@ export function traceUpstreamMermaid(input: CodeInput) {
 	return renderMermaid(traceGraph(input, "upstream"));
 }
 
-function traceGraph(input: CodeInput, direction: FlowDirection): FlowGraph {
+function traceGraph(input: CodeInput, direction: FlowDirection) {
 	const parsed =
 		typeof input === "string"
 			? extractCursor(input)

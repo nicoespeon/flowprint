@@ -1,6 +1,6 @@
 import type { FlowGraph, FlowNode } from "../trace.js";
 
-export function renderJSON(graph: FlowGraph): string {
+export function renderJSON(graph: FlowGraph) {
 	return JSON.stringify(
 		{
 			direction: graph.direction,
@@ -12,13 +12,10 @@ export function renderJSON(graph: FlowGraph): string {
 }
 
 function nodeToJSON(node: FlowNode): Record<string, unknown> {
-	const result: Record<string, unknown> = {
+	return {
 		symbolName: node.symbolName,
 		kind: node.kind,
+		...(node.location && { location: node.location }),
+		sources: node.children.map(nodeToJSON),
 	};
-	if (node.location) {
-		result.location = node.location;
-	}
-	result.sources = node.children.map(nodeToJSON);
-	return result;
 }

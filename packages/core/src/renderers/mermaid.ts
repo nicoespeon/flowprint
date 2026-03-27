@@ -1,22 +1,19 @@
 import type { FlowGraph, FlowNode } from "../trace.js";
 
-export function renderMermaid(graph: FlowGraph): string {
-	const direction = graph.direction === "upstream" ? "BT" : "TD";
+export function renderMermaid(graph: FlowGraph) {
+	const isUpstream = graph.direction === "upstream";
 	const nodes: string[] = [];
 	const edges: string[] = [];
 	let nextId = 0;
 
-	function traverse(node: FlowNode): string {
+	function traverse(node: FlowNode) {
 		const id = `n${nextId++}`;
 		nodes.push(`    ${id}["${node.symbolName}"]`);
 
 		for (const child of node.children) {
 			const childId = traverse(child);
-			if (graph.direction === "upstream") {
-				edges.push(`    ${childId} --> ${id}`);
-			} else {
-				edges.push(`    ${id} --> ${childId}`);
-			}
+			const [from, to] = isUpstream ? [childId, id] : [id, childId];
+			edges.push(`    ${from} --> ${to}`);
 		}
 
 		return id;
@@ -24,5 +21,6 @@ export function renderMermaid(graph: FlowGraph): string {
 
 	traverse(graph.root);
 
-	return [`flowchart ${direction}`, ...nodes, ...edges].join("\n");
+	const flowDirection = isUpstream ? "BT" : "TD";
+	return [`flowchart ${flowDirection}`, ...nodes, ...edges].join("\n");
 }
