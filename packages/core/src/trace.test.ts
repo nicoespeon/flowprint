@@ -16,6 +16,18 @@ const [>]target = source;`;
 			`);
 		});
 
+		it("traces when cursor is at the end of the identifier", () => {
+			const code = `const source = "hello";
+const target[>] = source;`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				target
+				└── source
+			`);
+		});
+
 		it("traces through chained variable assignments", () => {
 			const code = `const a = "hello";
 const b = a;
