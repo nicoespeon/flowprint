@@ -1,35 +1,39 @@
-import { traceDataFlow, type FlowDirection } from "./trace.js";
+import { traceDataFlow, type FlowDirection, type FlowGraph } from "./trace.js";
 import { renderTextTree } from "./renderers/text-tree.js";
+import { renderJSON } from "./renderers/json.js";
+import { renderMermaid } from "./renderers/mermaid.js";
 
 const CURSOR_MARKER = "[>]";
 
 type CodeInput = string | Record<string, string>;
 
-type TraceHelperOptions = {
-	direction: FlowDirection;
-	verbose?: boolean;
-};
-
 export function traceUpstream(input: CodeInput) {
-	return traceAndRender(input, { direction: "upstream" });
+	return renderTextTree(traceGraph(input, "upstream"));
 }
 
 export function traceUpstreamVerbose(input: CodeInput) {
-	return traceAndRender(input, { direction: "upstream", verbose: true });
+	return renderTextTree(traceGraph(input, "upstream"), { verbose: true });
 }
 
 export function traceDownstream(input: CodeInput) {
-	return traceAndRender(input, { direction: "downstream" });
+	return renderTextTree(traceGraph(input, "downstream"));
 }
 
-function traceAndRender(input: CodeInput, options: TraceHelperOptions) {
+export function traceUpstreamJSON(input: CodeInput) {
+	return renderJSON(traceGraph(input, "upstream"));
+}
+
+export function traceUpstreamMermaid(input: CodeInput) {
+	return renderMermaid(traceGraph(input, "upstream"));
+}
+
+function traceGraph(input: CodeInput, direction: FlowDirection): FlowGraph {
 	const parsed =
 		typeof input === "string"
 			? extractCursor(input)
 			: parseMultipleFiles(input);
 
-	const graph = traceDataFlow({ ...parsed, direction: options.direction });
-	return renderTextTree(graph, { verbose: options.verbose });
+	return traceDataFlow({ ...parsed, direction });
 }
 
 function parseMultipleFiles(filesWithCursor: Record<string, string>) {

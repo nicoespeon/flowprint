@@ -1,6 +1,11 @@
 import { resolve } from "node:path";
 import { existsSync } from "node:fs";
-import { traceDataFlow, renderTextTree } from "@flowprint/core";
+import {
+	traceDataFlow,
+	renderTextTree,
+	renderJSON,
+	renderMermaid,
+} from "@flowprint/core";
 
 const USAGE = `Usage: flowprint trace <file>:<line>:<col> [options]
 
@@ -86,9 +91,10 @@ function run() {
 
 	if (format === "text") {
 		console.log(renderTextTree(graph, { verbose }));
+	} else if (format === "json") {
+		console.log(renderJSON(graph));
 	} else {
-		console.error(`Format "${format}" is not implemented yet.`);
-		process.exit(1);
+		console.log(renderMermaid(graph));
 	}
 }
 
