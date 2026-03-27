@@ -36,6 +36,11 @@ jobs:
       - run: npm install -g npm@latest
         name: Update npm (required for trusted publishing)
 
+      - run: pnpm --filter @flowprint/core build
+      - run: pnpm exec eslint .
+      - run: pnpm -r typecheck
+      - run: pnpm exec vitest run
+
       - run: pnpm -r build
 
       - run: npm publish
