@@ -10,5 +10,6 @@ updates:
       production-dependencies:
         dependency-type: "production"
     ignore:
+      # TODO: remove once typescript-eslint supports TS 6.x
       - dependency-name: "typescript"
         versions: [">=6.0.0"]
