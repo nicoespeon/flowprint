@@ -33,17 +33,25 @@ value (service.ts:3:7)
 
 The trace follows `value` upstream through `data.toto` (property access on a parameter), across the file boundary to `input.toto` (the argument at the call site in handler.ts). Each node shows its file and position so you can jump straight to the code.
 
-## Install
+## VS Code Extension
+
+Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=nicoespeon.flowprint-vscode) or search "flowprint" in Extensions.
+
+Right-click a symbol and select **"Flowprint: Trace Data Flow (Upstream)"**. The Data Flow panel shows the trace tree with click-to-navigate.
+
+## CLI
+
+Install globally or run with npx:
 
 ```sh
 npm install -g flowprint
 ```
 
-Or run without installing:
-
 ```sh
 npx flowprint trace src/handler.ts:5:12
 ```
+
+Works great with AI agents — give them the CLI and they can trace data flow programmatically.
 
 ## Usage
 
@@ -67,18 +75,17 @@ flowprint follows data upstream through:
 
 - Variable assignments (`const x = y`)
 - Chained assignments (`a = b = c`)
-- Function parameters to call-site arguments
+- Function parameters to call-site arguments (declarations, arrow functions, callbacks)
 - Property access (`obj.name`)
 - Method call receivers (`items.filter(...)` traces to `items`)
+- Destructuring (`const { name } = obj`)
 - Cross-file imports
 
 ### Not yet implemented
 
 - Downstream tracing (where does data flow _to_)
-- Destructuring (`const { x } = obj`)
-- Arrow functions and function expressions
+- Re-exports (`export { x } from "./y"`)
 - JSON and Mermaid output formats
-- VS Code extension
 
 ## Contributing
 

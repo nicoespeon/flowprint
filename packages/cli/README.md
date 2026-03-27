@@ -67,17 +67,21 @@ flowprint trace <file>:<line>:<col> [options]
 
 - Variable assignments (`const x = y`)
 - Chained assignments (`a = b = c`)
-- Function parameters to call-site arguments
+- Function parameters to call-site arguments (declarations, arrow functions, callbacks)
 - Property access (`obj.name`)
 - Method call receivers (`items.filter(...)` traces to `items`)
+- Destructuring (`const { name } = obj`)
 - Cross-file imports
 
 ### Not yet implemented
 
 - Downstream tracing (where does data flow _to_)
-- Destructuring (`const { x } = obj`)
-- Arrow functions and function expressions
+- Re-exports (`export { x } from "./y"`)
 - JSON and Mermaid output formats
+
+## VS Code Extension
+
+Prefer a visual interface? Install the [flowprint VS Code extension](https://marketplace.visualstudio.com/items?itemName=nicoespeon.flowprint-vscode) — right-click any symbol and trace its data flow in a tree view.
 
 ## Contributing
 
