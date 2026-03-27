@@ -19,6 +19,12 @@ export default tseslint.config(
 		},
 	},
 	{
-		ignores: ["**/dist/", "**/out/", "**/coverage/", "**/node_modules/"],
+		ignores: [
+			"**/dist/",
+			"**/out/",
+			"**/coverage/",
+			"**/node_modules/",
+			"playground/",
+		],
 	},
 );
