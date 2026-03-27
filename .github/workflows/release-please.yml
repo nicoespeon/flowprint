@@ -61,7 +61,8 @@ jobs:
       - run: pnpm -r typecheck
       - run: pnpm exec vitest run
 
-      - run: pnpm --filter flowprint-vscode build
+      - run: node esbuild.config.mjs --production
+        working-directory: packages/vscode
 
       - run: pnpm exec vsce publish --no-dependencies
         working-directory: packages/vscode
