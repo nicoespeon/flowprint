@@ -48,7 +48,7 @@
 	},
 	"devDependencies": {
 		"@flowprint/core": "workspace:*",
-		"@types/vscode": "1.100.0"
+		"@types/vscode": "1.110.0"
 	},
 	"license": "MIT"
 }
