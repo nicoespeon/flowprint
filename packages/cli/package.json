@@ -4,7 +4,7 @@
 	"description": "Trace data flow across TypeScript codebases",
 	"type": "module",
 	"bin": {
-		"flowprint": "./dist/index.js"
+		"flowprint": "dist/index.js"
 	},
 	"files": [
 		"dist"
@@ -23,7 +23,7 @@
 	],
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/nicoespeon/flowprint.git",
+		"url": "git+https://github.com/nicoespeon/flowprint.git",
 		"directory": "packages/cli"
 	},
 	"homepage": "https://github.com/nicoespeon/flowprint",
