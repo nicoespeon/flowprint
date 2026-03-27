@@ -21,7 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
 			if (!editor) return;
 
 			const filePath = editor.document.uri.fsPath;
-			const position = editor.selection.active;
+			const position = editor.selection.start;
 			const tsConfigFilePath = findNearestTsConfig(filePath);
 
 			outputChannel.appendLine(
