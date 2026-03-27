@@ -7,6 +7,7 @@ import {
 	type ParameterDeclaration,
 	type PropertyAccessExpression,
 	type ReferenceFindableNode,
+	type SourceFile,
 	type VariableDeclaration,
 } from "ts-morph";
 
@@ -107,7 +108,7 @@ export function traceDataFlow(options: TraceOptions): FlowGraph {
 		);
 	}
 
-	const node = sourceFile.getDescendantAtPos(pos);
+	const node = findNodeAtPos(sourceFile, pos);
 	if (!node) {
 		throw new Error(
 			`No traceable symbol at ${options.position.line}:${options.position.column}`,
@@ -116,6 +117,18 @@ export function traceDataFlow(options: TraceOptions): FlowGraph {
 
 	const root = traceUpstreamNode(node, new Set());
 	return { root, direction: options.direction };
+}
+
+function findNodeAtPos(sourceFile: SourceFile, pos: number) {
+	const node = sourceFile.getDescendantAtPos(pos);
+	if (node && Node.isIdentifier(node)) return node;
+
+	if (pos > 0) {
+		const prevNode = sourceFile.getDescendantAtPos(pos - 1);
+		if (prevNode && Node.isIdentifier(prevNode)) return prevNode;
+	}
+
+	return node;
 }
 
 function nodeKey(node: Node): string {
