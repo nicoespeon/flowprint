@@ -1,14 +1,54 @@
 {
 	"name": "@flowprint/vscode",
+	"displayName": "flowprint",
+	"description": "Trace data flow across TypeScript codebases",
 	"version": "0.0.0",
-	"description": "VS Code extension for flowprint data flow tracing",
-	"type": "module",
-	"scripts": {
-		"build": "tsc",
-		"typecheck": "tsc --noEmit"
+	"publisher": "nicoespeon",
+	"engines": {
+		"vscode": "^1.100.0"
 	},
-	"dependencies": {
-		"@flowprint/core": "workspace:*"
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onLanguage:typescript",
+		"onLanguage:typescriptreact"
+	],
+	"main": "./dist/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "flowprint.traceUpstream",
+				"title": "Trace Data Flow Upstream",
+				"category": "Flowprint"
+			}
+		],
+		"menus": {
+			"editor/context": [
+				{
+					"command": "flowprint.traceUpstream",
+					"when": "editorLangId == typescript || editorLangId == typescriptreact",
+					"group": "navigation@100"
+				}
+			]
+		},
+		"views": {
+			"explorer": [
+				{
+					"id": "flowprint.traceView",
+					"name": "Data Flow",
+					"when": "flowprint.hasTrace"
+				}
+			]
+		}
+	},
+	"scripts": {
+		"build": "node esbuild.config.mjs",
+		"build:watch": "node esbuild.config.mjs --watch"
+	},
+	"devDependencies": {
+		"@flowprint/core": "workspace:*",
+		"@types/vscode": "1.100.0"
 	},
 	"license": "MIT"
 }

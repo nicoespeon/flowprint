@@ -13,6 +13,12 @@ export default tseslint.config(
 		},
 	},
 	{
+		files: ["**/esbuild.config.*"],
+		languageOptions: {
+			globals: { process: "readonly", console: "readonly" },
+		},
+	},
+	{
 		ignores: ["**/dist/", "**/out/", "**/coverage/", "**/node_modules/"],
 	},
 );
