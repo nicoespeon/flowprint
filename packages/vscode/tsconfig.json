@@ -3,8 +3,8 @@
 	"compilerOptions": {
 		"outDir": "./dist",
 		"rootDir": "./src",
-		"module": "Node16",
-		"moduleResolution": "Node16",
+		"module": "Preserve",
+		"moduleResolution": "Bundler",
 		"noEmit": true
 	},
 	"include": ["src"],
