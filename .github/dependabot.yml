@@ -13,3 +13,5 @@ updates:
       # TODO: remove once typescript-eslint supports TS 6.x
       - dependency-name: "typescript"
         versions: [">=6.0.0"]
+      # Must stay in sync with engines.vscode in packages/vscode/package.json
+      - dependency-name: "@types/vscode"
