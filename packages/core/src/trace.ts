@@ -5,6 +5,7 @@ import {
 	type CallExpression,
 	type ParameterDeclaration,
 	type PropertyAccessExpression,
+	type ReferenceFindableNode,
 	type VariableDeclaration,
 } from "ts-morph";
 
@@ -246,61 +247,66 @@ function findCallSiteArgs(param: ParameterDeclaration): Node[] {
 	if (!fn) return [];
 
 	const paramIndex = fn.getParameters().indexOf(param);
+	const referenceNode = findReferenceNode(fn);
+	if (!referenceNode) return [];
 
-	if (Node.isFunctionDeclaration(fn)) {
-		return fn
-			.findReferencesAsNodes()
-			.map((ref) => ref.getParent())
-			.filter(Node.isCallExpression)
-			.map((call) => call.getArguments()[paramIndex])
-			.filter((arg): arg is Node => arg !== undefined);
-	}
+	return argsAtIndex(referenceNode, paramIndex);
+}
+
+function findReferenceNode(fn: Node): ReferenceFindableNode | undefined {
+	if (Node.isFunctionDeclaration(fn)) return fn;
 
 	const parent = fn.getParent();
+	if (!parent) return undefined;
 
 	// const greet = (name) => { ... }; greet(user);
-	if (parent && Node.isVariableDeclaration(parent)) {
+	if (Node.isVariableDeclaration(parent)) {
 		const nameNode = parent.getNameNode();
-		if (!Node.isIdentifier(nameNode)) return [];
-		return nameNode
-			.findReferencesAsNodes()
-			.map((ref) => ref.getParent())
-			.filter(Node.isCallExpression)
-			.map((call) => call.getArguments()[paramIndex])
-			.filter((arg): arg is Node => arg !== undefined);
+		return Node.isIdentifier(nameNode) ? nameNode : undefined;
 	}
 
-	// process((value) => { ... }) — inline callback as argument
-	if (parent && Node.isCallExpression(parent)) {
-		const argIndex = parent.getArguments().indexOf(fn);
-		if (argIndex === -1) return [];
-
-		const callee = parent.getExpression();
-		const calleeDefs = Node.isIdentifier(callee)
-			? callee.getDefinitionNodes()
-			: [];
-		const calleeFn = calleeDefs.at(0);
-		if (!calleeFn) return [];
-
-		const calleeParams = Node.isFunctionDeclaration(calleeFn)
-			? calleeFn.getParameters()
-			: Node.isVariableDeclaration(calleeFn)
-				? getParamsFromVarDecl(calleeFn)
-				: [];
-
-		const callbackParam = calleeParams[argIndex];
-		if (!callbackParam) return [];
-
-		// Find where the callback param is called inside the callee function
-		return callbackParam
-			.findReferencesAsNodes()
-			.map((ref) => ref.getParent())
-			.filter(Node.isCallExpression)
-			.map((call) => call.getArguments()[paramIndex])
-			.filter((arg): arg is Node => arg !== undefined);
+	// process((value) => { ... }) — inline callback
+	if (Node.isCallExpression(parent)) {
+		return findCallbackReferenceNode(parent, fn);
 	}
 
+	return undefined;
+}
+
+function findCallbackReferenceNode(
+	callExpr: CallExpression,
+	callbackFn: Node,
+): ReferenceFindableNode | undefined {
+	const argIndex = callExpr.getArguments().indexOf(callbackFn);
+	if (argIndex === -1) return undefined;
+
+	const callee = callExpr.getExpression();
+	if (!Node.isIdentifier(callee)) return undefined;
+
+	const calleeDef = callee.getDefinitionNodes().at(0);
+	if (!calleeDef) return undefined;
+
+	const calleeParams = getCalleeParams(calleeDef);
+	return calleeParams[argIndex];
+}
+
+function getCalleeParams(calleeDef: Node): ParameterDeclaration[] {
+	if (Node.isFunctionDeclaration(calleeDef)) return calleeDef.getParameters();
+	if (Node.isVariableDeclaration(calleeDef))
+		return getParamsFromVarDecl(calleeDef);
 	return [];
+}
+
+function argsAtIndex(
+	referenceNode: ReferenceFindableNode,
+	paramIndex: number,
+): Node[] {
+	return referenceNode
+		.findReferencesAsNodes()
+		.map((ref) => ref.getParent())
+		.filter(Node.isCallExpression)
+		.map((call) => call.getArguments()[paramIndex])
+		.filter((arg): arg is Node => arg !== undefined);
 }
 
 function getParamsFromVarDecl(
