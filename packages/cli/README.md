@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/nicoespeon/flowprint/main/assets/icon.png" alt="flowprint" width="128" />
+</p>
+
 # flowprint
 
 Trace data flow across TypeScript codebases. See where a variable's data comes from.

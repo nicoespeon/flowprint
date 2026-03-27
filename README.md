@@ -1,6 +1,8 @@
-# flowprint
+<p align="center">
+  <img src="assets/banner.png" alt="flowprint" />
+</p>
 
-Trace data flow across TypeScript codebases. See where a variable's data comes from.
+<p align="center">Trace data flow across TypeScript codebases. See where a variable's data comes from.</p>
 
 VS Code's built-in Call Hierarchy works for function calls, but not for data. **flowprint** fills that gap: point at a variable and see the full chain of assignments, parameters, and property accesses that connect it to the rest of your codebase.
 
