@@ -66,7 +66,7 @@ jobs:
       - run: pnpm exec vsce publish --no-dependencies
         working-directory: packages/vscode
         env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          VSCE_PAT: ${{ secrets.VSCODE_ACCESS_TOKEN }}
 
       - run: pnpm exec ovsx publish --no-dependencies
         working-directory: packages/vscode
