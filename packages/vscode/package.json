@@ -1,16 +1,35 @@
 {
-	"name": "@flowprint/vscode",
+	"name": "flowprint-vscode",
 	"displayName": "flowprint",
 	"description": "Trace data flow across TypeScript codebases",
 	"version": "0.0.0",
 	"publisher": "nicoespeon",
-	"icon": "../../assets/icon.png",
+	"icon": "icon.png",
 	"engines": {
 		"vscode": "^1.100.0"
 	},
 	"categories": [
+		"Programming Languages",
 		"Other"
 	],
+	"keywords": [
+		"typescript",
+		"data-flow",
+		"trace",
+		"static-analysis",
+		"call-hierarchy"
+	],
+	"galleryBanner": {
+		"color": "#A855F7",
+		"theme": "dark"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/nicoespeon/flowprint.git",
+		"directory": "packages/vscode"
+	},
+	"homepage": "https://github.com/nicoespeon/flowprint",
+	"bugs": "https://github.com/nicoespeon/flowprint/issues",
 	"activationEvents": [
 		"onLanguage:typescript",
 		"onLanguage:typescriptreact"
@@ -44,7 +63,10 @@
 	},
 	"scripts": {
 		"build": "node esbuild.config.mjs",
-		"build:watch": "node esbuild.config.mjs --watch"
+		"build:watch": "node esbuild.config.mjs --watch",
+		"package": "vsce package --no-dependencies",
+		"deploy:vscode": "vsce publish --no-dependencies",
+		"deploy:ovsx": "ovsx publish --no-dependencies"
 	},
 	"devDependencies": {
 		"@flowprint/core": "workspace:*",

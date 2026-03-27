@@ -4,6 +4,11 @@
 			"release-type": "node",
 			"component": "flowprint",
 			"changelog-path": "CHANGELOG.md"
+		},
+		"packages/vscode": {
+			"release-type": "node",
+			"component": "flowprint-vscode",
+			"changelog-path": "CHANGELOG.md"
 		}
 	}
 }

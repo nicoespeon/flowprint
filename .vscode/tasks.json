@@ -4,14 +4,14 @@
 		{
 			"label": "build:vscode",
 			"type": "shell",
-			"command": "pnpm --filter @flowprint/vscode build",
+			"command": "pnpm --filter flowprint-vscode build",
 			"group": "build",
 			"problemMatcher": []
 		},
 		{
 			"label": "watch:vscode",
 			"type": "shell",
-			"command": "pnpm --filter @flowprint/vscode build:watch",
+			"command": "pnpm --filter flowprint-vscode build:watch",
 			"group": "build",
 			"isBackground": true,
 			"problemMatcher": []

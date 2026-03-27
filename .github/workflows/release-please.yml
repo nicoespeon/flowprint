@@ -14,16 +14,17 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     outputs:
-      release_created: ${{ steps.release.outputs['packages/cli--release_created'] }}
+      cli_release_created: ${{ steps.release.outputs['packages/cli--release_created'] }}
+      vscode_release_created: ${{ steps.release.outputs['packages/vscode--release_created'] }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
         with:
           token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
 
-  publish:
+  publish-cli:
     needs: release-please
-    if: needs.release-please.outputs.release_created == 'true'
+    if: needs.release-please.outputs.cli_release_created == 'true'
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -45,3 +46,29 @@ jobs:
 
       - run: npm publish
         working-directory: packages/cli
+
+  publish-vscode:
+    needs: release-please
+    if: needs.release-please.outputs.vscode_release_created == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/prepare
+
+      - run: pnpm --filter @flowprint/core build
+      - run: pnpm exec eslint .
+      - run: pnpm -r typecheck
+      - run: pnpm exec vitest run
+
+      - run: pnpm --filter flowprint-vscode build
+
+      - run: pnpm exec vsce publish --no-dependencies
+        working-directory: packages/vscode
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      - run: pnpm exec ovsx publish --no-dependencies
+        working-directory: packages/vscode
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_ACCESS_TOKEN }}
