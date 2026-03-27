@@ -16,5 +16,6 @@ jobs:
 
       - run: pnpm exec prettier --check .
       - run: pnpm exec eslint .
+      - run: pnpm --filter @flowprint/core build
       - run: pnpm -r typecheck
       - run: pnpm exec vitest run
