@@ -9,7 +9,7 @@ const USAGE = `Usage: flowprint trace <file>:<line>:<col> [options]
 Options:
   --direction <upstream|downstream>  Trace direction (default: upstream)
   --format <text|json|mermaid>       Output format (default: text)
-  --verbose                          Show location info in output
+  --compact                          Hide location info in output
   --tsconfig <path>                  Path to tsconfig.json
   --help                             Show this help message`;
 
@@ -61,7 +61,7 @@ function run() {
 		process.exit(1);
 	}
 
-	const verbose = args.includes("--verbose");
+	const verbose = !args.includes("--compact");
 	const tsConfigFilePath = parseFlag(args, "--tsconfig");
 
 	const filePath = resolve(parsed.filePath);

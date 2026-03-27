@@ -21,7 +21,7 @@ const input = { toto: "hello" };
 process(input);
 ```
 
-Running `flowprint trace service.ts:3:8` on `value` produces:
+Running `flowprint trace service.ts:3:8` on `value`:
 
 ```
 value (service.ts:3:7)
@@ -49,7 +49,7 @@ npx flowprint trace src/handler.ts:5:12
 flowprint trace <file>:<line>:<col> [options]
 ```
 
-**`<file>:<line>:<col>`** — The symbol to trace. Line and column are 1-based (matching your editor's status bar).
+`<file>:<line>:<col>` is the symbol to trace. Line and column are 1-based (matching your editor's status bar).
 
 ### Options
 
@@ -60,8 +60,6 @@ flowprint trace <file>:<line>:<col> [options]
 | `--tsconfig <path>`    | Path to tsconfig.json                   | auto-detect |
 
 ### What it traces
-
-flowprint follows data upstream through:
 
 - Variable assignments (`const x = y`)
 - Chained assignments (`a = b = c`)
@@ -76,12 +74,11 @@ flowprint follows data upstream through:
 - Destructuring (`const { x } = obj`)
 - Arrow functions and function expressions
 - JSON and Mermaid output formats
-- VS Code extension
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions and development workflow.
+See the [contributing guide](https://github.com/nicoespeon/flowprint/blob/main/CONTRIBUTING.md).
 
 ## License
 
-[MIT](LICENSE)
+[MIT](https://github.com/nicoespeon/flowprint/blob/main/LICENSE)
