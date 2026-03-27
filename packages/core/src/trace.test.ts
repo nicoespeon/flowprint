@@ -206,6 +206,52 @@ process(raw);`;
 			`);
 		});
 
+		it("traces an arrow function parameter to its call-site argument", () => {
+			const code = `const greet = ([>]name: string) => {
+	console.log(name);
+};
+const user = "Alice";
+greet(user);`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				name
+				└── user
+			`);
+		});
+
+		it("traces a function expression parameter to its call-site argument", () => {
+			const code = `const greet = function([>]name: string) {
+	console.log(name);
+};
+const user = "Alice";
+greet(user);`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				name
+				└── user
+			`);
+		});
+
+		it("traces through an arrow function passed as a callback", () => {
+			const code = `function process(callback: (x: string) => void) {
+	callback("hello");
+}
+process(([>]value) => {
+	console.log(value);
+});`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				value
+				└── "hello"
+			`);
+		});
+
 		it("traces property access through a parameter with multiple callers", () => {
 			const code = `function handleAdInt(data: { toto: string }) {
 	const [>]toto = data.toto;

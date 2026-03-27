@@ -233,20 +233,84 @@ function traceParameter(
 	if (visited.has(key))
 		return { symbolName: name, kind: "parameter", children: [], location };
 	visited.add(key);
-	const fn = param.getFirstAncestorByKind(SyntaxKind.FunctionDeclaration);
-	if (!fn)
-		return { symbolName: name, kind: "parameter", children: [], location };
-
-	const paramIndex = fn.getParameters().indexOf(param);
-	const callSiteArgs = fn
-		.findReferencesAsNodes()
-		.map((ref) => ref.getParent())
-		.filter(Node.isCallExpression)
-		.map((call) => call.getArguments()[paramIndex])
-		.filter((arg): arg is Node => arg !== undefined);
-
+	const callSiteArgs = findCallSiteArgs(param);
 	const children = callSiteArgs.map((arg) => traceUpstreamNode(arg, visited));
 	return { symbolName: name, kind: "parameter", children, location };
+}
+
+function findCallSiteArgs(param: ParameterDeclaration): Node[] {
+	const fn =
+		param.getFirstAncestorByKind(SyntaxKind.FunctionDeclaration) ??
+		param.getFirstAncestorByKind(SyntaxKind.ArrowFunction) ??
+		param.getFirstAncestorByKind(SyntaxKind.FunctionExpression);
+	if (!fn) return [];
+
+	const paramIndex = fn.getParameters().indexOf(param);
+
+	if (Node.isFunctionDeclaration(fn)) {
+		return fn
+			.findReferencesAsNodes()
+			.map((ref) => ref.getParent())
+			.filter(Node.isCallExpression)
+			.map((call) => call.getArguments()[paramIndex])
+			.filter((arg): arg is Node => arg !== undefined);
+	}
+
+	const parent = fn.getParent();
+
+	// const greet = (name) => { ... }; greet(user);
+	if (parent && Node.isVariableDeclaration(parent)) {
+		const nameNode = parent.getNameNode();
+		if (!Node.isIdentifier(nameNode)) return [];
+		return nameNode
+			.findReferencesAsNodes()
+			.map((ref) => ref.getParent())
+			.filter(Node.isCallExpression)
+			.map((call) => call.getArguments()[paramIndex])
+			.filter((arg): arg is Node => arg !== undefined);
+	}
+
+	// process((value) => { ... }) — inline callback as argument
+	if (parent && Node.isCallExpression(parent)) {
+		const argIndex = parent.getArguments().indexOf(fn);
+		if (argIndex === -1) return [];
+
+		const callee = parent.getExpression();
+		const calleeDefs = Node.isIdentifier(callee)
+			? callee.getDefinitionNodes()
+			: [];
+		const calleeFn = calleeDefs.at(0);
+		if (!calleeFn) return [];
+
+		const calleeParams = Node.isFunctionDeclaration(calleeFn)
+			? calleeFn.getParameters()
+			: Node.isVariableDeclaration(calleeFn)
+				? getParamsFromVarDecl(calleeFn)
+				: [];
+
+		const callbackParam = calleeParams[argIndex];
+		if (!callbackParam) return [];
+
+		// Find where the callback param is called inside the callee function
+		return callbackParam
+			.findReferencesAsNodes()
+			.map((ref) => ref.getParent())
+			.filter(Node.isCallExpression)
+			.map((call) => call.getArguments()[paramIndex])
+			.filter((arg): arg is Node => arg !== undefined);
+	}
+
+	return [];
+}
+
+function getParamsFromVarDecl(
+	varDecl: VariableDeclaration,
+): ParameterDeclaration[] {
+	const init = varDecl.getInitializer();
+	if (init && (Node.isArrowFunction(init) || Node.isFunctionExpression(init))) {
+		return init.getParameters();
+	}
+	return [];
 }
 
 function locationOf(node: Node): FlowLocation {
