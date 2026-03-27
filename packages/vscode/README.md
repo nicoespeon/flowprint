@@ -22,6 +22,16 @@ VS Code's built-in Call Hierarchy works for function calls, but not for data. **
 - Destructuring (`const { name } = obj`)
 - Cross-file imports
 
+## CLI
+
+flowprint is also available as a CLI, useful for scripting or giving to your AI agent:
+
+```sh
+npx flowprint trace src/handler.ts:5:12
+```
+
+See the [CLI package on npm](https://www.npmjs.com/package/flowprint) for full usage.
+
 ## Not yet implemented
 
 - Downstream tracing (where does data flow _to_)
