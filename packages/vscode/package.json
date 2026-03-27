@@ -19,8 +19,7 @@
 		"commands": [
 			{
 				"command": "flowprint.traceUpstream",
-				"title": "Trace Data Flow Upstream",
-				"category": "Flowprint"
+				"title": "Flowprint: Trace Data Flow (Upstream)"
 			}
 		],
 		"menus": {
