@@ -190,6 +190,48 @@ process(input);`,
 			`);
 		});
 
+		it("traces through a named re-export", () => {
+			const result = traceUpstream({
+				"src/a.ts": `import { source } from "./barrel";
+const [>]target = source;`,
+				"src/barrel.ts": `export { source } from "./b";`,
+				"src/b.ts": `export const source = "hello";`,
+			});
+
+			expect(result).toBe(dedent`
+				target
+				└── source
+			`);
+		});
+
+		it("traces through a renamed re-export", () => {
+			const result = traceUpstream({
+				"src/a.ts": `import { renamed } from "./barrel";
+const [>]target = renamed;`,
+				"src/barrel.ts": `export { source as renamed } from "./b";`,
+				"src/b.ts": `export const source = "hello";`,
+			});
+
+			expect(result).toBe(dedent`
+				target
+				└── source
+			`);
+		});
+
+		it("traces through a wildcard re-export", () => {
+			const result = traceUpstream({
+				"src/a.ts": `import { source } from "./barrel";
+const [>]target = source;`,
+				"src/barrel.ts": `export * from "./b";`,
+				"src/b.ts": `export const source = "hello";`,
+			});
+
+			expect(result).toBe(dedent`
+				target
+				└── source
+			`);
+		});
+
 		it("traces through a method call to its receiver", () => {
 			const code = `const items = [1, 2, 3];
 const [>]result = items.filter(x => x > 1);`;
