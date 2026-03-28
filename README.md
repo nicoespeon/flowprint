@@ -63,11 +63,12 @@ flowprint trace <file>:<line>:<col> [options]
 
 ### Options
 
-| Flag                   | Description                             | Default     |
-| ---------------------- | --------------------------------------- | ----------- |
-| `--direction upstream` | Trace where data comes from             | `upstream`  |
-| `--compact`            | Hide file paths and positions in output | off         |
-| `--tsconfig <path>`    | Path to tsconfig.json                   | auto-detect |
+| Flag                   | Description                              | Default     |
+| ---------------------- | ---------------------------------------- | ----------- |
+| `--direction upstream` | Trace where data comes from              | `upstream`  |
+| `--format <format>`    | Output format: `text`, `json`, `mermaid` | `text`      |
+| `--compact`            | Hide file paths and positions in output  | off         |
+| `--tsconfig <path>`    | Path to tsconfig.json                    | auto-detect |
 
 ### What it traces
 
@@ -85,7 +86,6 @@ flowprint follows data upstream through:
 
 - Downstream tracing (where does data flow _to_)
 - Re-exports (`export { x } from "./y"`)
-- JSON and Mermaid output formats
 
 ## Contributing
 
