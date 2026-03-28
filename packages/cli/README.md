@@ -72,12 +72,11 @@ flowprint trace <file>:<line>:<col> [options]
 - Property access (`obj.name`)
 - Method call receivers (`items.filter(...)` traces to `items`)
 - Destructuring (`const { name } = obj`)
-- Cross-file imports
+- Cross-file imports and re-exports (`export { x } from "./y"`, `export * from "./y"`)
 
 ### Not yet implemented
 
 - Downstream tracing (where does data flow _to_)
-- Re-exports (`export { x } from "./y"`)
 
 ## VS Code Extension
 

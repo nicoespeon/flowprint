@@ -20,7 +20,7 @@ VS Code's built-in Call Hierarchy works for function calls, but not for data. **
 - Property access (`obj.name`)
 - Method call receivers (`items.filter(...)` traces to `items`)
 - Destructuring (`const { name } = obj`)
-- Cross-file imports
+- Cross-file imports and re-exports (`export { x } from "./y"`, `export * from "./y"`)
 
 ## CLI
 
@@ -35,7 +35,6 @@ See the [CLI package on npm](https://www.npmjs.com/package/flowprint) for full u
 ## Not yet implemented
 
 - Downstream tracing (where does data flow _to_)
-- Re-exports (`export { x } from "./y"`)
 
 ## Links
 
