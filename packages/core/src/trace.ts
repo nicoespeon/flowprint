@@ -115,7 +115,10 @@ export function traceDataFlow(options: TraceOptions): FlowGraph {
 		);
 	}
 
-	const root = traceUpstreamNode(node, new Set());
+	const root =
+		options.direction === "upstream"
+			? traceUpstreamNode(node, new Set())
+			: traceDownstreamNode(node, new Set());
 	return { root, direction: options.direction };
 }
 
@@ -369,6 +372,104 @@ function getParamsFromVarDecl(
 		return init.getParameters();
 	}
 	return [];
+}
+
+function traceDownstreamNode(node: Node, visited: Set<string>): FlowNode {
+	if (Node.isIdentifier(node)) {
+		const varDecl = node.getFirstAncestorByKind(SyntaxKind.VariableDeclaration);
+		if (varDecl) return traceDownstreamDeclaration(varDecl, visited);
+
+		const param = node.getFirstAncestorByKind(SyntaxKind.Parameter);
+		if (param) return traceDownstreamDeclaration(param, visited);
+	}
+
+	if (Node.isVariableDeclaration(node))
+		return traceDownstreamDeclaration(node, visited);
+	if (Node.isParameterDeclaration(node))
+		return traceDownstreamDeclaration(node, visited);
+
+	return {
+		symbolName: node.getText(),
+		kind: "reference",
+		children: [],
+		location: locationOf(node),
+	};
+}
+
+function traceDownstreamDeclaration(
+	decl: VariableDeclaration | ParameterDeclaration,
+	visited: Set<string>,
+): FlowNode {
+	const key = nodeKey(decl);
+	const name = decl.getName();
+	const kind: FlowNodeKind = Node.isParameterDeclaration(decl)
+		? "parameter"
+		: "assignment";
+	const location = locationOf(decl.getNameNode());
+
+	if (visited.has(key))
+		return { symbolName: name, kind, children: [], location };
+	visited.add(key);
+
+	const nameNode = decl.getNameNode();
+	const children = Node.isIdentifier(nameNode)
+		? downstreamConsumersOf(nameNode, visited)
+		: [];
+	return { symbolName: name, kind, children, location };
+}
+
+function downstreamConsumersOf(
+	nameNode: ReferenceFindableNode & Node,
+	visited: Set<string>,
+): FlowNode[] {
+	return nameNode
+		.findReferencesAsNodes()
+		.filter(
+			(ref) =>
+				ref.getStart() !== (nameNode as Node).getStart() ||
+				ref.getSourceFile() !== (nameNode as Node).getSourceFile(),
+		)
+		.map((ref) => resolveDownstreamConsumer(ref, visited))
+		.filter((node): node is FlowNode => node !== undefined);
+}
+
+function resolveDownstreamConsumer(
+	ref: Node,
+	visited: Set<string>,
+): FlowNode | undefined {
+	const parent = ref.getParent();
+	if (!parent) return undefined;
+
+	if (Node.isVariableDeclaration(parent) && parent.getInitializer() === ref) {
+		return traceDownstreamDeclaration(parent, visited);
+	}
+
+	if (Node.isCallExpression(parent)) {
+		const argIndex = parent.getArguments().indexOf(ref);
+		if (argIndex === -1) return undefined;
+		const param = resolveCalleeParam(parent, argIndex);
+		if (param) return traceDownstreamDeclaration(param, visited);
+	}
+
+	return undefined;
+}
+
+function resolveCalleeParam(
+	call: CallExpression,
+	argIndex: number,
+): ParameterDeclaration | undefined {
+	const callee = call.getExpression();
+	if (!Node.isIdentifier(callee)) return undefined;
+
+	const definition = callee.getDefinitionNodes().at(0);
+	if (!definition) return undefined;
+
+	if (Node.isFunctionDeclaration(definition))
+		return definition.getParameters()[argIndex];
+	if (Node.isVariableDeclaration(definition))
+		return getParamsFromVarDecl(definition)[argIndex];
+
+	return undefined;
 }
 
 function locationOf(node: Node): FlowLocation {

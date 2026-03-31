@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
 import dedent from "string-dedent";
-import { traceUpstream, traceUpstreamVerbose } from "./test-helpers.js";
+import {
+	traceUpstream,
+	traceUpstreamVerbose,
+	traceDownstream,
+} from "./test-helpers.js";
 
 describe("traceDataFlow", () => {
 	describe("upstream (where does data come from)", () => {
@@ -367,6 +371,47 @@ function handleAd() {
 				└── data.toto (2:14)
 				    ├── data.toto (6:7)
 				    └── data.toto (11:7)
+			`);
+		});
+	});
+
+	describe("downstream (where does data go)", () => {
+		it("traces a variable to where it is assigned", () => {
+			const code = `const [>]source = "hello";
+const target = source;`;
+
+			const result = traceDownstream(code);
+
+			expect(result).toBe(dedent`
+				source
+				└── target
+			`);
+		});
+
+		it("traces a variable to multiple consumers", () => {
+			const code = `const [>]source = "hello";
+const a = source;
+const b = source;`;
+
+			const result = traceDownstream(code);
+
+			expect(result).toBe(dedent`
+				source
+				├── a
+				└── b
+			`);
+		});
+
+		it("traces through a function call into the parameter", () => {
+			const code = `function process(input: string) {}
+const [>]data = "hello";
+process(data);`;
+
+			const result = traceDownstream(code);
+
+			expect(result).toBe(dedent`
+				data
+				└── input
 			`);
 		});
 	});
