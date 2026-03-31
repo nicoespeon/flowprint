@@ -14,6 +14,8 @@ VS Code's built-in Call Hierarchy works for function calls, but not for data. **
 
 ## What it traces
 
+**Upstream** (where does data come from):
+
 - Variable assignments (`const x = y`)
 - Chained assignments (`a = b = c`)
 - Function parameters to call-site arguments (declarations, arrow functions, callbacks)
@@ -21,6 +23,11 @@ VS Code's built-in Call Hierarchy works for function calls, but not for data. **
 - Method call receivers (`items.filter(...)` traces to `items`)
 - Destructuring (`const { name } = obj`)
 - Cross-file imports and re-exports (`export { x } from "./y"`, `export * from "./y"`)
+
+**Downstream** (where does data go):
+
+- Variable assignments (`const target = source` traces `source` to `target`)
+- Function call arguments into parameters (`fn(data)` traces `data` into `fn`'s parameter)
 
 ## CLI
 
@@ -31,10 +38,6 @@ npx flowprint trace src/handler.ts:5:12
 ```
 
 See the [CLI package on npm](https://www.npmjs.com/package/flowprint) for full usage.
-
-## Not yet implemented
-
-- Downstream tracing (where does data flow _to_)
 
 ## Links
 

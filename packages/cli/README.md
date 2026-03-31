@@ -57,14 +57,16 @@ flowprint trace <file>:<line>:<col> [options]
 
 ### Options
 
-| Flag                   | Description                              | Default     |
-| ---------------------- | ---------------------------------------- | ----------- |
-| `--direction upstream` | Trace where data comes from              | `upstream`  |
-| `--format <format>`    | Output format: `text`, `json`, `mermaid` | `text`      |
-| `--compact`            | Hide file paths and positions in output  | off         |
-| `--tsconfig <path>`    | Path to tsconfig.json                    | auto-detect |
+| Flag                | Description                                        | Default     |
+| ------------------- | -------------------------------------------------- | ----------- |
+| `--direction <dir>` | `upstream` (where from) or `downstream` (where to) | `upstream`  |
+| `--format <format>` | Output format: `text`, `json`, `mermaid`           | `text`      |
+| `--compact`         | Hide file paths and positions in output            | off         |
+| `--tsconfig <path>` | Path to tsconfig.json                              | auto-detect |
 
 ### What it traces
+
+**Upstream** (where does data come from):
 
 - Variable assignments (`const x = y`)
 - Chained assignments (`a = b = c`)
@@ -74,9 +76,10 @@ flowprint trace <file>:<line>:<col> [options]
 - Destructuring (`const { name } = obj`)
 - Cross-file imports and re-exports (`export { x } from "./y"`, `export * from "./y"`)
 
-### Not yet implemented
+**Downstream** (where does data go):
 
-- Downstream tracing (where does data flow _to_)
+- Variable assignments (`const target = source` traces `source` to `target`)
+- Function call arguments into parameters (`fn(data)` traces `data` into `fn`'s parameter)
 
 ## VS Code Extension
 
