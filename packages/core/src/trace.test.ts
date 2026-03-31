@@ -414,5 +414,75 @@ process(data);`;
 				└── input
 			`);
 		});
+
+		it("traces through chained assignments", () => {
+			const code = `const [>]a = "hello";
+const b = a;
+const c = b;`;
+
+			const result = traceDownstream(code);
+
+			expect(result).toBe(dedent`
+				a
+				└── b
+				    └── c
+			`);
+		});
+
+		it("traces through a function call and assignment chain", () => {
+			const code = `function process(input: string) {
+	const value = input;
+}
+const [>]data = "hello";
+process(data);`;
+
+			const result = traceDownstream(code);
+
+			expect(result).toBe(dedent`
+				data
+				└── input
+				    └── value
+			`);
+		});
+
+		it("traces a parameter downstream within the function body", () => {
+			const code = `function process([>]input: string) {
+	const trimmed = input;
+	const upper = input;
+}`;
+
+			const result = traceDownstream(code);
+
+			expect(result).toBe(dedent`
+				input
+				├── trimmed
+				└── upper
+			`);
+		});
+
+		it("traces through property access", () => {
+			const code = `const [>]obj = { name: "Alice" };
+const name = obj.name;`;
+
+			const result = traceDownstream(code);
+
+			expect(result).toBe(dedent`
+				obj
+				└── name
+			`);
+		});
+
+		it("traces across files via imports", () => {
+			const result = traceDownstream({
+				"src/a.ts": `export const [>]source = "hello";`,
+				"src/b.ts": `import { source } from "./a";
+const target = source;`,
+			});
+
+			expect(result).toBe(dedent`
+				source
+				└── target
+			`);
+		});
 	});
 });

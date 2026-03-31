@@ -445,9 +445,15 @@ function resolveDownstreamConsumer(
 		return traceDownstreamDeclaration(parent, visited);
 	}
 
+	if (Node.isPropertyAccessExpression(parent)) {
+		return resolveDownstreamConsumer(parent, visited);
+	}
+
 	if (Node.isCallExpression(parent)) {
 		const argIndex = parent.getArguments().indexOf(ref);
-		if (argIndex === -1) return undefined;
+		if (argIndex === -1) {
+			return resolveDownstreamConsumer(parent, visited);
+		}
 		const param = resolveCalleeParam(parent, argIndex);
 		if (param) return traceDownstreamDeclaration(param, visited);
 	}
