@@ -422,12 +422,13 @@ function downstreamConsumersOf(
 	nameNode: ReferenceFindableNode & Node,
 	visited: Set<string>,
 ): FlowNode[] {
+	const declStart = nameNode.getStart();
+	const declFile = nameNode.getSourceFile();
+
 	return nameNode
 		.findReferencesAsNodes()
 		.filter(
-			(ref) =>
-				ref.getStart() !== (nameNode as Node).getStart() ||
-				ref.getSourceFile() !== (nameNode as Node).getSourceFile(),
+			(ref) => ref.getStart() !== declStart || ref.getSourceFile() !== declFile,
 		)
 		.map((ref) => resolveDownstreamConsumer(ref, visited))
 		.filter((node): node is FlowNode => node !== undefined);
@@ -464,12 +465,7 @@ function resolveCalleeParam(
 	const definition = callee.getDefinitionNodes().at(0);
 	if (!definition) return undefined;
 
-	if (Node.isFunctionDeclaration(definition))
-		return definition.getParameters()[argIndex];
-	if (Node.isVariableDeclaration(definition))
-		return getParamsFromVarDecl(definition)[argIndex];
-
-	return undefined;
+	return getCalleeParams(definition)[argIndex];
 }
 
 function locationOf(node: Node): FlowLocation {
