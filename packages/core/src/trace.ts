@@ -281,19 +281,28 @@ function tracePropertyAccess(
 		visited,
 	);
 
-	const singleSameName =
+	const redundantWrapper =
 		rawChildren.length === 1 && rawChildren[0]?.symbolName === fullName
 			? rawChildren[0]
 			: undefined;
-	const children = singleSameName ? singleSameName.children : rawChildren;
-	const incomplete = singleSameName?.incomplete;
+
+	if (redundantWrapper) {
+		return {
+			symbolName: fullName,
+			kind: "property-access",
+			children: redundantWrapper.children,
+			location,
+			...(redundantWrapper.incomplete && {
+				incomplete: redundantWrapper.incomplete,
+			}),
+		};
+	}
 
 	return {
 		symbolName: fullName,
 		kind: "property-access",
-		children,
+		children: rawChildren,
 		location,
-		...(incomplete && { incomplete }),
 	};
 }
 
@@ -332,54 +341,43 @@ function tracePropertyInVarDecl(
 	const key = nodeKey(varDecl);
 	const name = varDecl.getName();
 	const location = locationOf(varDecl.getNameNode());
+	const symbolName = name + "." + propertyName;
+
 	if (visited.has(key))
-		return [
-			{
-				symbolName: name + "." + propertyName,
-				kind: "property-access",
-				children: [],
-				location,
-			},
-		];
+		return [{ symbolName, kind: "property-access", children: [], location }];
 	visited.add(key);
 
 	const initializer = varDecl.getInitializer();
+	const propValue =
+		initializer && Node.isObjectLiteralExpression(initializer)
+			? getObjectPropertyValue(initializer, propertyName)
+			: undefined;
 
-	if (initializer && Node.isObjectLiteralExpression(initializer)) {
-		const propValue = getObjectPropertyValue(initializer, propertyName);
-		if (propValue) {
-			const isTraceable =
-				Node.isIdentifier(propValue) ||
-				Node.isPropertyAccessExpression(propValue) ||
-				Node.isCallExpression(propValue);
-			if (isTraceable) {
-				return [
-					{
-						symbolName: name + "." + propertyName,
-						kind: "property-access",
-						children: [traceUpstreamNode(propValue, visited)],
-						location,
-					},
-				];
-			}
-			const incomplete = containsVariableReferences(propValue);
-			return [
-				{
-					symbolName: name + "." + propertyName,
-					kind: "property-access",
-					children: [],
-					location,
-					...(incomplete && { incomplete }),
-				},
-			];
-		}
+	if (propValue) {
+		const isTraceable =
+			Node.isIdentifier(propValue) ||
+			Node.isPropertyAccessExpression(propValue) ||
+			Node.isCallExpression(propValue);
+
+		const children = isTraceable ? [traceUpstreamNode(propValue, visited)] : [];
+		const incomplete = !isTraceable && containsVariableReferences(propValue);
+
+		return [
+			{
+				symbolName,
+				kind: "property-access",
+				children,
+				location,
+				...(incomplete && { incomplete }),
+			},
+		];
 	}
 
 	const incomplete =
 		initializer !== undefined && containsVariableReferences(initializer);
 	return [
 		{
-			symbolName: name + "." + propertyName,
+			symbolName,
 			kind: "property-access",
 			children: [],
 			location,
