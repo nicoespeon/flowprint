@@ -32,6 +32,7 @@ export type FlowNode = {
 	kind: FlowNodeKind;
 	children: FlowNode[];
 	location?: FlowLocation;
+	incomplete?: boolean;
 };
 
 export type FlowGraph = {
@@ -205,7 +206,18 @@ function traceVariableDeclaration(
 		? [traceUpstreamNode(initializer, visited)]
 		: [];
 
-	return { symbolName: name, kind: "assignment", children, location };
+	const incomplete =
+		!isTraceableInitializer &&
+		initializer !== undefined &&
+		hasIdentifiers(initializer);
+
+	return {
+		symbolName: name,
+		kind: "assignment",
+		children,
+		location,
+		...(incomplete && { incomplete }),
+	};
 }
 
 function traceBindingElement(
@@ -484,6 +496,25 @@ function locationOf(node: Node): FlowLocation {
 		line: line + 1,
 		column: character,
 	};
+}
+
+function hasIdentifiers(node: Node): boolean {
+	return node.getDescendantsOfKind(SyntaxKind.Identifier).some((id) => {
+		const parent = id.getParent();
+		if (
+			parent &&
+			Node.isPropertyAssignment(parent) &&
+			parent.getNameNode() === id
+		)
+			return false;
+		if (
+			parent &&
+			Node.isPropertyAccessExpression(parent) &&
+			parent.getNameNode() === id
+		)
+			return false;
+		return true;
+	});
 }
 
 function addMultipleFiles(project: Project, options: TraceFromMultipleFiles) {

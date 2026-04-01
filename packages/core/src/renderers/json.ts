@@ -16,6 +16,7 @@ function nodeToJSON(node: FlowNode): Record<string, unknown> {
 		symbolName: node.symbolName,
 		kind: node.kind,
 		...(node.location && { location: node.location }),
+		...(node.incomplete && { incomplete: true }),
 		sources: node.children.map(nodeToJSON),
 	};
 }

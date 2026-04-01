@@ -20,6 +20,18 @@ const [>]target = source;`;
 			`);
 		});
 
+		it("traces a variable whose initializer is a literal expression", () => {
+			const code = `const source = 1 + 2;
+const [>]target = source;`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				target
+				└── source
+			`);
+		});
+
 		it("traces when cursor is at the end of the identifier", () => {
 			const code = `const source = "hello";
 const target[>] = source;`;
@@ -369,9 +381,39 @@ function handleAd() {
 			expect(result).toBe(dedent`
 				toto (2:7)
 				└── data.toto (2:14)
-				    ├── data.toto (6:7)
+				    ├── data.toto (6:7) …
 				    └── data.toto (11:7)
 			`);
+		});
+	});
+
+	describe("incomplete traces", () => {
+		it("marks a node whose initializer contains unreachable references", () => {
+			const code = `const [>]target = source + " world";`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe("target …");
+		});
+
+		it("marks the incomplete leaf in a chain", () => {
+			const code = `const source = origin + " processed";
+const [>]target = source;`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				target
+				└── source …
+			`);
+		});
+
+		it("does not mark a variable with no initializer", () => {
+			const code = `let [>]target: string;`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe("target");
 		});
 	});
 

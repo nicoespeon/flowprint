@@ -37,10 +37,16 @@ function renderNode(
 }
 
 function formatNodeLabel(node: FlowNode, options: ResolvedOptions): string {
-	if (!options.verbose || !node.location) return node.symbolName;
+	let label = node.symbolName;
 
-	const locationStr = formatLocation(node.location, options.showFilePath);
-	return `${node.symbolName} (${locationStr})`;
+	if (options.verbose && node.location) {
+		const locationStr = formatLocation(node.location, options.showFilePath);
+		label += ` (${locationStr})`;
+	}
+
+	if (node.incomplete) label += " …";
+
+	return label;
 }
 
 function formatLocation(location: FlowLocation, showFilePath?: boolean) {
