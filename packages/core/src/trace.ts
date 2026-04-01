@@ -275,20 +275,130 @@ function tracePropertyAccess(
 	const propertyName = expr.getName();
 	const location = locationOf(expr);
 
-	const objectTrace = traceUpstreamNode(expr.getExpression(), visited);
-	const children = objectTrace.children.map((child) => ({
-		...child,
-		symbolName: child.symbolName + "." + propertyName,
-		kind: "property-access" as const,
-		children: [] as FlowNode[],
-	}));
+	const rawChildren = tracePropertyUpstream(
+		expr.getExpression(),
+		propertyName,
+		visited,
+	);
+
+	const singleSameName =
+		rawChildren.length === 1 && rawChildren[0]?.symbolName === fullName
+			? rawChildren[0]
+			: undefined;
+	const children = singleSameName ? singleSameName.children : rawChildren;
+	const incomplete = singleSameName?.incomplete;
 
 	return {
 		symbolName: fullName,
 		kind: "property-access",
 		children,
 		location,
+		...(incomplete && { incomplete }),
 	};
+}
+
+function tracePropertyUpstream(
+	object: Node,
+	propertyName: string,
+	visited: Set<string>,
+): FlowNode[] {
+	if (Node.isIdentifier(object)) {
+		const definition = object.getDefinitionNodes().at(0);
+		if (definition)
+			return tracePropertyUpstream(definition, propertyName, visited);
+		return [];
+	}
+
+	if (Node.isVariableDeclaration(object))
+		return tracePropertyInVarDecl(object, propertyName, visited);
+
+	if (Node.isParameterDeclaration(object)) {
+		const key = nodeKey(object);
+		if (visited.has(key)) return [];
+		visited.add(key);
+		return findCallSiteArgs(object).flatMap((arg) =>
+			tracePropertyUpstream(arg, propertyName, visited),
+		);
+	}
+
+	return [];
+}
+
+function tracePropertyInVarDecl(
+	varDecl: VariableDeclaration,
+	propertyName: string,
+	visited: Set<string>,
+): FlowNode[] {
+	const key = nodeKey(varDecl);
+	const name = varDecl.getName();
+	const location = locationOf(varDecl.getNameNode());
+	if (visited.has(key))
+		return [
+			{
+				symbolName: name + "." + propertyName,
+				kind: "property-access",
+				children: [],
+				location,
+			},
+		];
+	visited.add(key);
+
+	const initializer = varDecl.getInitializer();
+
+	if (initializer && Node.isObjectLiteralExpression(initializer)) {
+		const propValue = getObjectPropertyValue(initializer, propertyName);
+		if (propValue) {
+			const isTraceable =
+				Node.isIdentifier(propValue) ||
+				Node.isPropertyAccessExpression(propValue) ||
+				Node.isCallExpression(propValue);
+			if (isTraceable) {
+				return [
+					{
+						symbolName: name + "." + propertyName,
+						kind: "property-access",
+						children: [traceUpstreamNode(propValue, visited)],
+						location,
+					},
+				];
+			}
+			const incomplete = containsVariableReferences(propValue);
+			return [
+				{
+					symbolName: name + "." + propertyName,
+					kind: "property-access",
+					children: [],
+					location,
+					...(incomplete && { incomplete }),
+				},
+			];
+		}
+	}
+
+	const incomplete =
+		initializer !== undefined && containsVariableReferences(initializer);
+	return [
+		{
+			symbolName: name + "." + propertyName,
+			kind: "property-access",
+			children: [],
+			location,
+			...(incomplete && { incomplete }),
+		},
+	];
+}
+
+function getObjectPropertyValue(
+	objLiteral: Node,
+	propertyName: string,
+): Node | undefined {
+	if (!Node.isObjectLiteralExpression(objLiteral)) return undefined;
+	for (const prop of objLiteral.getProperties()) {
+		if (Node.isPropertyAssignment(prop) && prop.getName() === propertyName) {
+			return prop.getInitializer();
+		}
+	}
+	return undefined;
 }
 
 function traceParameter(

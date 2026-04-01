@@ -101,6 +101,20 @@ const [>]value = obj.name;`;
 			`);
 		});
 
+		it("traces through an object literal property value", () => {
+			const code = `const source = "hello";
+const obj = { name: source };
+const [>]value = obj.name;`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				value
+				└── obj.name
+				    └── source
+			`);
+		});
+
 		it("traces a property access back through a function parameter", () => {
 			const code = `function process(data: { toto: string }) {
 	const [>]value = data.toto;
@@ -381,7 +395,8 @@ function handleAd() {
 			expect(result).toBe(dedent`
 				toto (2:7)
 				└── data.toto (2:14)
-				    ├── data.toto (6:7) …
+				    ├── data.toto (6:7)
+				    │   └── ctx.query.tot (6:22)
 				    └── data.toto (11:7)
 			`);
 		});
