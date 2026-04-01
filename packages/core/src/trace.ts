@@ -209,7 +209,7 @@ function traceVariableDeclaration(
 	const incomplete =
 		!isTraceableInitializer &&
 		initializer !== undefined &&
-		hasIdentifiers(initializer);
+		containsVariableReferences(initializer);
 
 	return {
 		symbolName: name,
@@ -498,23 +498,21 @@ function locationOf(node: Node): FlowLocation {
 	};
 }
 
-function hasIdentifiers(node: Node): boolean {
-	return node.getDescendantsOfKind(SyntaxKind.Identifier).some((id) => {
-		const parent = id.getParent();
-		if (
-			parent &&
-			Node.isPropertyAssignment(parent) &&
-			parent.getNameNode() === id
-		)
-			return false;
-		if (
-			parent &&
-			Node.isPropertyAccessExpression(parent) &&
-			parent.getNameNode() === id
-		)
-			return false;
-		return true;
-	});
+function isPropertyName(id: Node) {
+	const parent = id.getParent();
+	if (!parent) return false;
+
+	return (
+		(Node.isPropertyAssignment(parent) ||
+			Node.isPropertyAccessExpression(parent)) &&
+		parent.getNameNode() === id
+	);
+}
+
+function containsVariableReferences(node: Node) {
+	return node
+		.getDescendantsOfKind(SyntaxKind.Identifier)
+		.some((id) => !isPropertyName(id));
 }
 
 function addMultipleFiles(project: Project, options: TraceFromMultipleFiles) {
