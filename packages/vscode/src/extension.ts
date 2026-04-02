@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import * as path from "node:path";
 import * as fs from "node:fs";
 import { traceDataFlow } from "@flowprint/core";
-import type { FlowGraph, FlowNode } from "@flowprint/core";
+import type { FlowDirection, FlowGraph, FlowNode } from "@flowprint/core";
 
 let outputChannel: vscode.OutputChannel;
 
@@ -16,56 +16,64 @@ export function activate(context: vscode.ExtensionContext) {
 			"flowprint.traceView",
 			treeDataProvider,
 		),
-		vscode.commands.registerCommand("flowprint.traceUpstream", async () => {
-			const editor = vscode.window.activeTextEditor;
-			if (!editor) return;
-
-			const filePath = editor.document.uri.fsPath;
-			const position = editor.selection.start;
-			const tsConfigFilePath = findNearestTsConfig(filePath);
-
-			outputChannel.appendLine(
-				`Tracing upstream from ${filePath}:${position.line + 1}:${position.character}`,
-			);
-			if (tsConfigFilePath) {
-				outputChannel.appendLine(`Using tsconfig: ${tsConfigFilePath}`);
-			}
-
-			try {
-				const graph = traceDataFlow({
-					filePath,
-					position: {
-						line: position.line + 1,
-						column: position.character,
-					},
-					direction: "upstream",
-					tsConfigFilePath,
-				});
-
-				outputChannel.appendLine(
-					`Trace complete: ${graph.root.symbolName} (${graph.root.children.length} children)`,
-				);
-
-				const workspaceRoot =
-					vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-				treeDataProvider.setGraph(graph, workspaceRoot);
-				await vscode.commands.executeCommand(
-					"setContext",
-					"flowprint.hasTrace",
-					true,
-				);
-				await vscode.commands.executeCommand("flowprint.traceView.focus");
-			} catch (error) {
-				const message =
-					error instanceof Error ? error.message : "Unknown error";
-				outputChannel.appendLine(`Error: ${message}`);
-				if (error instanceof Error && error.stack) {
-					outputChannel.appendLine(error.stack);
-				}
-				vscode.window.showErrorMessage(`Flowprint: ${message}`);
-			}
-		}),
+		vscode.commands.registerCommand("flowprint.traceUpstream", () =>
+			trace("upstream", treeDataProvider),
+		),
+		vscode.commands.registerCommand("flowprint.traceDownstream", () =>
+			trace("downstream", treeDataProvider),
+		),
 	);
+}
+
+async function trace(
+	direction: FlowDirection,
+	treeDataProvider: FlowTreeDataProvider,
+) {
+	const editor = vscode.window.activeTextEditor;
+	if (!editor) return;
+
+	const filePath = editor.document.uri.fsPath;
+	const position = editor.selection.start;
+	const tsConfigFilePath = findNearestTsConfig(filePath);
+
+	outputChannel.appendLine(
+		`Tracing ${direction} from ${filePath}:${position.line + 1}:${position.character}`,
+	);
+	if (tsConfigFilePath) {
+		outputChannel.appendLine(`Using tsconfig: ${tsConfigFilePath}`);
+	}
+
+	try {
+		const graph = traceDataFlow({
+			filePath,
+			position: {
+				line: position.line + 1,
+				column: position.character,
+			},
+			direction,
+			tsConfigFilePath,
+		});
+
+		outputChannel.appendLine(
+			`Trace complete: ${graph.root.symbolName} (${graph.root.children.length} children)`,
+		);
+
+		const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+		treeDataProvider.setGraph(graph, workspaceRoot);
+		await vscode.commands.executeCommand(
+			"setContext",
+			"flowprint.hasTrace",
+			true,
+		);
+		await vscode.commands.executeCommand("flowprint.traceView.focus");
+	} catch (error) {
+		const message = error instanceof Error ? error.message : "Unknown error";
+		outputChannel.appendLine(`Error: ${message}`);
+		if (error instanceof Error && error.stack) {
+			outputChannel.appendLine(error.stack);
+		}
+		vscode.window.showErrorMessage(`Flowprint: ${message}`);
+	}
 }
 
 export function deactivate() {}

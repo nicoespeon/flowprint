@@ -40,6 +40,10 @@
 			{
 				"command": "flowprint.traceUpstream",
 				"title": "Flowprint: Trace Data Flow (Upstream)"
+			},
+			{
+				"command": "flowprint.traceDownstream",
+				"title": "Flowprint: Trace Data Flow (Downstream)"
 			}
 		],
 		"menus": {
@@ -48,6 +52,11 @@
 					"command": "flowprint.traceUpstream",
 					"when": "editorLangId == typescript || editorLangId == typescriptreact",
 					"group": "0_navigation@5"
+				},
+				{
+					"command": "flowprint.traceDownstream",
+					"when": "editorLangId == typescript || editorLangId == typescriptreact",
+					"group": "0_navigation@6"
 				}
 			]
 		},
