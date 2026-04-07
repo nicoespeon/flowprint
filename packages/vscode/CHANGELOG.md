@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.0](https://github.com/nicoespeon/flowprint/compare/flowprint-vscode-v0.1.0...flowprint-vscode-v0.2.0) (2026-04-07)
+
+
+### Features
+
+* expose downstream tracing in VS Code extension ([2e0a0aa](https://github.com/nicoespeon/flowprint/commit/2e0a0aafb60ee13b071dbfc9d811767468354048))
+* origins mode — show only leaf nodes (data entry points) ([6873d60](https://github.com/nicoespeon/flowprint/commit/6873d60d10f1d9f84759584c61b42a0d47f502fa))
+* show origins in persistent tree view instead of QuickPick ([c81bd0b](https://github.com/nicoespeon/flowprint/commit/c81bd0be9317212387c7aa33080bf721816f492c))
+
 ## [0.1.0](https://github.com/nicoespeon/flowprint/compare/flowprint-vscode-v0.0.1...flowprint-vscode-v0.1.0) (2026-03-27)
 
 

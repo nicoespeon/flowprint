@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.0](https://github.com/nicoespeon/flowprint/compare/flowprint-v0.1.0...flowprint-v0.2.0) (2026-04-07)
+
+
+### Features
+
+* add JSON and Mermaid output formats for CLI ([5e8f2d5](https://github.com/nicoespeon/flowprint/commit/5e8f2d530a175c77b3a85c780ee13a8135b9d35b))
+* downstream tracing (where does data go) ([8a12347](https://github.com/nicoespeon/flowprint/commit/8a123477f914c66e21bdcf2ef9c18b1e0016607f))
+* origins mode — show only leaf nodes (data entry points) ([6873d60](https://github.com/nicoespeon/flowprint/commit/6873d60d10f1d9f84759584c61b42a0d47f502fa))
+
 ## [0.1.0](https://github.com/nicoespeon/flowprint/compare/flowprint-v0.0.1...flowprint-v0.1.0) (2026-03-27)
 
 
