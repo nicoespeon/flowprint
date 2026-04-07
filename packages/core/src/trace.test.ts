@@ -130,6 +130,18 @@ const [>]value = obj.name;`;
 			`);
 		});
 
+		it("traces an array-destructured variable to its source", () => {
+			const code = `const items = [1, 2, 3];
+const [[>]first] = items;`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				first
+				└── items
+			`);
+		});
+
 		it("traces through spread in an object literal", () => {
 			const code = `const defaults = { a: 1 };
 const overrides = { b: 2 };
