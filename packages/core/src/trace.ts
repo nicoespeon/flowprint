@@ -395,6 +395,12 @@ function getObjectPropertyValue(
 		if (Node.isPropertyAssignment(prop) && prop.getName() === propertyName) {
 			return prop.getInitializer();
 		}
+		if (
+			Node.isShorthandPropertyAssignment(prop) &&
+			prop.getName() === propertyName
+		) {
+			return prop.getNameNode();
+		}
 	}
 	return undefined;
 }

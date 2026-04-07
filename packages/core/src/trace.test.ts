@@ -116,6 +116,20 @@ const [>]value = obj.name;`;
 			`);
 		});
 
+		it("traces through a shorthand property in an object literal", () => {
+			const code = `const name = "Alice";
+const obj = { name };
+const [>]value = obj.name;`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				value
+				└── obj.name
+				    └── name
+			`);
+		});
+
 		it("traces a property access back through a function parameter", () => {
 			const code = `function process(data: { toto: string }) {
 	const [>]value = data.toto;
