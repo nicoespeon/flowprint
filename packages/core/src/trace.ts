@@ -214,12 +214,23 @@ function traceVariableDeclaration(
 			Node.isCallExpression(initializer) ||
 			Node.isConditionalExpression(initializer));
 
+	const spreadSources =
+		initializer && Node.isObjectLiteralExpression(initializer)
+			? initializer
+					.getProperties()
+					.filter(Node.isSpreadAssignment)
+					.map((spread) => spread.getExpression())
+			: [];
+
 	const children = isTraceableInitializer
 		? [traceUpstreamNode(initializer, visited)]
-		: [];
+		: spreadSources.length > 0
+			? spreadSources.map((expr) => traceUpstreamNode(expr, visited))
+			: [];
 
 	const incomplete =
 		!isTraceableInitializer &&
+		spreadSources.length === 0 &&
 		initializer !== undefined &&
 		containsVariableReferences(initializer);
 

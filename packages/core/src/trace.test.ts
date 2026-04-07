@@ -130,6 +130,20 @@ const [>]value = obj.name;`;
 			`);
 		});
 
+		it("traces through spread in an object literal", () => {
+			const code = `const defaults = { a: 1 };
+const overrides = { b: 2 };
+const [>]merged = { ...defaults, ...overrides };`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				merged
+				├── defaults
+				└── overrides
+			`);
+		});
+
 		it("traces both branches of a ternary expression", () => {
 			const code = `const a = "hello";
 const b = "world";
