@@ -259,6 +259,19 @@ function traceCallExpression(
 		return traceUpstreamNode(callee.getExpression(), visited);
 	}
 
+	if (Node.isIdentifier(callee)) {
+		const returnValues = resolveReturnValues(callee);
+		if (returnValues.length > 0) {
+			const children = returnValues.map((rv) => traceUpstreamNode(rv, visited));
+			return {
+				symbolName: call.getText(),
+				kind: "return",
+				children,
+				location: locationOf(call),
+			};
+		}
+	}
+
 	return {
 		symbolName: call.getText(),
 		kind: "reference",
@@ -384,6 +397,33 @@ function tracePropertyInVarDecl(
 			...(incomplete && { incomplete }),
 		},
 	];
+}
+
+function resolveReturnValues(callee: Node): Node[] {
+	const definition = Node.isIdentifier(callee)
+		? callee.getDefinitionNodes().at(0)
+		: undefined;
+	if (!definition) return [];
+
+	const body = Node.isFunctionDeclaration(definition)
+		? definition.getBody()
+		: Node.isVariableDeclaration(definition)
+			? (() => {
+					const init = definition.getInitializer();
+					if (
+						init &&
+						(Node.isArrowFunction(init) || Node.isFunctionExpression(init))
+					)
+						return init.getBody();
+					return undefined;
+				})()
+			: undefined;
+	if (!body) return [];
+
+	return body
+		.getDescendantsOfKind(SyntaxKind.ReturnStatement)
+		.filter((ret) => ret.getExpression() !== undefined)
+		.map((ret) => ret.getExpression() as Node);
 }
 
 function getObjectPropertyValue(

@@ -130,6 +130,39 @@ const [>]value = obj.name;`;
 			`);
 		});
 
+		it("traces through a function return value", () => {
+			const code = `function getSource() {
+	const value = "hello";
+	return value;
+}
+const [>]target = getSource();`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				target
+				└── getSource()
+				    └── value
+			`);
+		});
+
+		it("traces through a function return value across files", () => {
+			const result = traceUpstream({
+				"src/a.ts": `import { getSource } from "./b";
+const [>]target = getSource();`,
+				"src/b.ts": `export function getSource() {
+	const value = "hello";
+	return value;
+}`,
+			});
+
+			expect(result).toBe(dedent`
+				target
+				└── getSource()
+				    └── value
+			`);
+		});
+
 		it("traces a property access back through a function parameter", () => {
 			const code = `function process(data: { toto: string }) {
 	const [>]value = data.toto;
