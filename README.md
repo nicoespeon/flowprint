@@ -37,7 +37,13 @@ The trace follows `value` upstream through `data.toto` (property access on a par
 
 Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=nicoespeon.flowprint-vscode) or search "flowprint" in Extensions.
 
-Right-click a symbol and select **"Flowprint: Trace Data Flow (Upstream)"**. The Data Flow panel shows the trace tree with click-to-navigate.
+Right-click a symbol to access three commands:
+
+- **Trace Data Flow (Upstream)** — full trace tree showing how data reaches this symbol
+- **Trace Data Flow (Downstream)** — full trace tree showing where data goes from this symbol
+- **Show Origins** — skip the intermediate hops, jump straight to where the data comes from
+
+The **Data Flow** panel in the Explorer sidebar shows results with click-to-navigate.
 
 ## CLI
 
@@ -67,6 +73,7 @@ flowprint trace <file>:<line>:<col> [options]
 | ------------------- | -------------------------------------------------- | ----------- |
 | `--direction <dir>` | `upstream` (where from) or `downstream` (where to) | `upstream`  |
 | `--format <format>` | Output format: `text`, `json`, `mermaid`           | `text`      |
+| `--origins`         | Show only the data entry points (leaf nodes)       | off         |
 | `--compact`         | Hide file paths and positions in output            | off         |
 | `--tsconfig <path>` | Path to tsconfig.json                              | auto-detect |
 

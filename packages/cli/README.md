@@ -61,6 +61,7 @@ flowprint trace <file>:<line>:<col> [options]
 | ------------------- | -------------------------------------------------- | ----------- |
 | `--direction <dir>` | `upstream` (where from) or `downstream` (where to) | `upstream`  |
 | `--format <format>` | Output format: `text`, `json`, `mermaid`           | `text`      |
+| `--origins`         | Show only the data entry points (leaf nodes)       | off         |
 | `--compact`         | Hide file paths and positions in output            | off         |
 | `--tsconfig <path>` | Path to tsconfig.json                              | auto-detect |
 

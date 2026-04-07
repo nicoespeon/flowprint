@@ -8,7 +8,10 @@ VS Code's built-in Call Hierarchy works for function calls, but not for data. **
 
 1. Open a TypeScript file
 2. Right-click on a variable, parameter, or property access
-3. Select **"Flowprint: Trace Data Flow (Upstream)"**
+3. Pick a command:
+   - **Trace Data Flow (Upstream)** — full trace tree showing how data reaches this symbol
+   - **Trace Data Flow (Downstream)** — full trace tree showing where data goes from this symbol
+   - **Show Origins** — skip the intermediate hops, show only where the data comes from
 4. The **Data Flow** panel appears in the Explorer sidebar
 5. Click any node to navigate to its source location
 
