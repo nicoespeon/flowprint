@@ -150,8 +150,9 @@ class FlowTreeDataProvider implements vscode.TreeDataProvider<FlowNode> {
 
 	getTreeItem(node: FlowNode): vscode.TreeItem {
 		const hasChildren = node.children.length > 0;
+		const label = node.incomplete ? `${node.symbolName} …` : node.symbolName;
 		const item = new vscode.TreeItem(
-			node.symbolName,
+			label,
 			hasChildren
 				? vscode.TreeItemCollapsibleState.Expanded
 				: vscode.TreeItemCollapsibleState.None,
