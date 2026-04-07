@@ -130,6 +130,22 @@ const [>]value = obj.name;`;
 			`);
 		});
 
+		it("traces both branches of a ternary expression", () => {
+			const code = `const a = "hello";
+const b = "world";
+const flag = true;
+const [>]target = flag ? a : b;`;
+
+			const result = traceUpstream(code);
+
+			expect(result).toBe(dedent`
+				target
+				└── flag ? a : b
+				    ├── a
+				    └── b
+			`);
+		});
+
 		it("traces through a function return value", () => {
 			const code = `function getSource() {
 	const value = "hello";

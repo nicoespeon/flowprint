@@ -176,6 +176,17 @@ function traceUpstreamNode(node: Node, visited: Set<string>): FlowNode {
 		return traceParameter(node, visited);
 	}
 
+	if (Node.isConditionalExpression(node)) {
+		const whenTrue = traceUpstreamNode(node.getWhenTrue(), visited);
+		const whenFalse = traceUpstreamNode(node.getWhenFalse(), visited);
+		return {
+			symbolName: node.getText(),
+			kind: "reference",
+			children: [whenTrue, whenFalse],
+			location: locationOf(node),
+		};
+	}
+
 	return {
 		symbolName: node.getText(),
 		kind: "reference",
@@ -200,7 +211,8 @@ function traceVariableDeclaration(
 		initializer !== undefined &&
 		(Node.isIdentifier(initializer) ||
 			Node.isPropertyAccessExpression(initializer) ||
-			Node.isCallExpression(initializer));
+			Node.isCallExpression(initializer) ||
+			Node.isConditionalExpression(initializer));
 
 	const children = isTraceableInitializer
 		? [traceUpstreamNode(initializer, visited)]
