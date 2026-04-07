@@ -22,7 +22,9 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand("flowprint.traceDownstream", () =>
 			trace("downstream", treeDataProvider),
 		),
-		vscode.commands.registerCommand("flowprint.showOrigins", showOrigins),
+		vscode.commands.registerCommand("flowprint.showOrigins", () =>
+			showOrigins(treeDataProvider),
+		),
 	);
 }
 
@@ -77,7 +79,7 @@ async function trace(
 	}
 }
 
-async function showOrigins() {
+async function showOrigins(treeDataProvider: FlowTreeDataProvider) {
 	const editor = vscode.window.activeTextEditor;
 	if (!editor) return;
 
@@ -101,48 +103,23 @@ async function showOrigins() {
 			return;
 		}
 
+		const originsGraph: FlowGraph = {
+			root: { ...graph.root, children: origins },
+			direction: "upstream",
+		};
+
 		const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-
-		const items = origins.flatMap((node) => {
-			if (!node.location) return [];
-			const loc = node.location;
-			const relativePath = workspaceRoot
-				? path.relative(workspaceRoot, loc.filePath)
-				: loc.filePath;
-			return [
-				{
-					label: node.symbolName,
-					description: `${relativePath}:${loc.line}`,
-					location: loc,
-				},
-			];
-		});
-
-		if (items.length === 1) {
-			navigateTo(items[0].location);
-			return;
-		}
-
-		const picked = await vscode.window.showQuickPick(items, {
-			placeHolder: `${graph.root.symbolName}: ${origins.length} origins found`,
-		});
-		if (picked) navigateTo(picked.location);
+		treeDataProvider.setGraph(originsGraph, workspaceRoot);
+		await vscode.commands.executeCommand(
+			"setContext",
+			"flowprint.hasTrace",
+			true,
+		);
+		await vscode.commands.executeCommand("flowprint.traceView.focus");
 	} catch (error) {
 		const message = error instanceof Error ? error.message : "Unknown error";
 		vscode.window.showErrorMessage(`Flowprint: ${message}`);
 	}
-}
-
-function navigateTo(location: {
-	filePath: string;
-	line: number;
-	column: number;
-}) {
-	const uri = vscode.Uri.file(location.filePath);
-	const pos = new vscode.Position(location.line - 1, location.column);
-	vscode.window.showTextDocument(uri, {
-		selection: new vscode.Range(pos, pos),
-	});
 }
 
 export function deactivate() {}
