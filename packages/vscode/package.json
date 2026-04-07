@@ -44,6 +44,10 @@
 			{
 				"command": "flowprint.traceDownstream",
 				"title": "Flowprint: Trace Data Flow (Downstream)"
+			},
+			{
+				"command": "flowprint.showOrigins",
+				"title": "Flowprint: Show Origins"
 			}
 		],
 		"menus": {
@@ -57,6 +61,11 @@
 					"command": "flowprint.traceDownstream",
 					"when": "editorLangId == typescript || editorLangId == typescriptreact",
 					"group": "0_navigation@6"
+				},
+				{
+					"command": "flowprint.showOrigins",
+					"when": "editorLangId == typescript || editorLangId == typescriptreact",
+					"group": "0_navigation@7"
 				}
 			]
 		},

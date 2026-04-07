@@ -2,6 +2,7 @@ import { resolve } from "node:path";
 import { existsSync } from "node:fs";
 import {
 	traceDataFlow,
+	getOrigins,
 	renderTextTree,
 	renderJSON,
 	renderMermaid,
@@ -12,6 +13,7 @@ const USAGE = `Usage: flowprint trace <file>:<line>:<col> [options]
 Options:
   --direction <upstream|downstream>  Trace direction (default: upstream)
   --format <text|json|mermaid>       Output format (default: text)
+  --origins                          Show only the leaf nodes (data origins)
   --compact                          Hide location info in output
   --tsconfig <path>                  Path to tsconfig.json
   --help                             Show this help message`;
@@ -82,6 +84,16 @@ function run() {
 		const message = error instanceof Error ? error.message : "Unknown error";
 		console.error(`Error: ${message}`);
 		process.exit(1);
+	}
+
+	if (args.includes("--origins")) {
+		const origins = getOrigins(graph);
+		for (const node of origins) {
+			const loc = node.location;
+			const suffix = loc ? ` (${loc.filePath}:${loc.line}:${loc.column})` : "";
+			console.log(`${node.symbolName}${suffix}`);
+		}
+		return;
 	}
 
 	if (format === "text") {

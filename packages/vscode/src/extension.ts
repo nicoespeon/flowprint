@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import * as path from "node:path";
 import * as fs from "node:fs";
-import { traceDataFlow } from "@flowprint/core";
+import { traceDataFlow, getOrigins } from "@flowprint/core";
 import type { FlowDirection, FlowGraph, FlowNode } from "@flowprint/core";
 
 let outputChannel: vscode.OutputChannel;
@@ -22,6 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand("flowprint.traceDownstream", () =>
 			trace("downstream", treeDataProvider),
 		),
+		vscode.commands.registerCommand("flowprint.showOrigins", showOrigins),
 	);
 }
 
@@ -74,6 +75,74 @@ async function trace(
 		}
 		vscode.window.showErrorMessage(`Flowprint: ${message}`);
 	}
+}
+
+async function showOrigins() {
+	const editor = vscode.window.activeTextEditor;
+	if (!editor) return;
+
+	const filePath = editor.document.uri.fsPath;
+	const position = editor.selection.start;
+	const tsConfigFilePath = findNearestTsConfig(filePath);
+
+	try {
+		const graph = traceDataFlow({
+			filePath,
+			position: { line: position.line + 1, column: position.character },
+			direction: "upstream",
+			tsConfigFilePath,
+		});
+
+		const origins = getOrigins(graph);
+		if (origins.length === 0) {
+			vscode.window.showInformationMessage(
+				"Flowprint: no origins found for this symbol.",
+			);
+			return;
+		}
+
+		const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+
+		const items = origins.flatMap((node) => {
+			if (!node.location) return [];
+			const loc = node.location;
+			const relativePath = workspaceRoot
+				? path.relative(workspaceRoot, loc.filePath)
+				: loc.filePath;
+			return [
+				{
+					label: node.symbolName,
+					description: `${relativePath}:${loc.line}`,
+					location: loc,
+				},
+			];
+		});
+
+		if (items.length === 1) {
+			navigateTo(items[0].location);
+			return;
+		}
+
+		const picked = await vscode.window.showQuickPick(items, {
+			placeHolder: `${graph.root.symbolName}: ${origins.length} origins found`,
+		});
+		if (picked) navigateTo(picked.location);
+	} catch (error) {
+		const message = error instanceof Error ? error.message : "Unknown error";
+		vscode.window.showErrorMessage(`Flowprint: ${message}`);
+	}
+}
+
+function navigateTo(location: {
+	filePath: string;
+	line: number;
+	column: number;
+}) {
+	const uri = vscode.Uri.file(location.filePath);
+	const pos = new vscode.Position(location.line - 1, location.column);
+	vscode.window.showTextDocument(uri, {
+		selection: new vscode.Range(pos, pos),
+	});
 }
 
 export function deactivate() {}

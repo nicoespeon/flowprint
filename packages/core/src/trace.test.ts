@@ -4,6 +4,7 @@ import {
 	traceUpstream,
 	traceUpstreamVerbose,
 	traceDownstream,
+	traceOriginsUpstream,
 } from "./test-helpers.js";
 
 describe("traceDataFlow", () => {
@@ -429,6 +430,38 @@ const [>]target = source;`;
 			const result = traceUpstream(code);
 
 			expect(result).toBe("target");
+		});
+	});
+
+	describe("origins (leaf nodes of upstream trace)", () => {
+		it("returns the deepest source in a chain", () => {
+			const code = `const a = "hello";
+const b = a;
+const [>]c = b;`;
+
+			const origins = traceOriginsUpstream(code);
+
+			expect(origins).toEqual(["a"]);
+		});
+
+		it("returns multiple origins when the trace branches", () => {
+			const code = `function handle([>]data: string) {}
+const a = "hello";
+handle(a);
+const b = "world";
+handle(b);`;
+
+			const origins = traceOriginsUpstream(code);
+
+			expect(origins).toEqual(["a", "b"]);
+		});
+
+		it("returns an empty list when the symbol has no sources", () => {
+			const code = `let [>]target: string;`;
+
+			const origins = traceOriginsUpstream(code);
+
+			expect(origins).toEqual([]);
 		});
 	});
 

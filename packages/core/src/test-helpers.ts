@@ -1,4 +1,5 @@
 import { traceDataFlow, type FlowDirection } from "./trace.js";
+import { getOrigins } from "./origins.js";
 import { renderTextTree } from "./renderers/text-tree.js";
 import { renderJSON } from "./renderers/json.js";
 import { renderMermaid } from "./renderers/mermaid.js";
@@ -25,6 +26,11 @@ export function traceUpstreamJSON(input: CodeInput) {
 
 export function traceUpstreamMermaid(input: CodeInput) {
 	return renderMermaid(traceGraph(input, "upstream"));
+}
+
+export function traceOriginsUpstream(input: CodeInput) {
+	const graph = traceGraph(input, "upstream");
+	return getOrigins(graph).map((node) => node.symbolName);
 }
 
 function traceGraph(input: CodeInput, direction: FlowDirection) {
