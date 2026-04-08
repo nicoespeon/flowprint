@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.1](https://github.com/nicoespeon/flowprint/compare/flowprint-v0.2.0...flowprint-v0.2.1) (2026-04-08)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * @flowprint/core bumped to 1.0.0
+
 ## [0.2.0](https://github.com/nicoespeon/flowprint/compare/flowprint-v0.1.0...flowprint-v0.2.0) (2026-04-07)
 
 

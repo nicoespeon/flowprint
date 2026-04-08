@@ -1,6 +1,6 @@
 {
 	"name": "@flowprint/core",
-	"version": "0.0.0",
+	"version": "1.0.0",
 	"description": "Data flow tracing engine for TypeScript",
 	"type": "module",
 	"exports": {
