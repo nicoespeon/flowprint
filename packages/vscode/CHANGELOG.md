@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0](https://github.com/nicoespeon/flowprint/compare/flowprint-vscode-v0.2.0...flowprint-vscode-v0.3.0) (2026-04-08)
+
+
+### Features
+
+* show … suffix on incomplete nodes in VS Code tree view ([8f069d0](https://github.com/nicoespeon/flowprint/commit/8f069d0b1d25fa8f3628de1cff161ce1d49818d7))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * @flowprint/core bumped to 1.0.0
+
 ## [0.2.0](https://github.com/nicoespeon/flowprint/compare/flowprint-vscode-v0.1.0...flowprint-vscode-v0.2.0) (2026-04-07)
 
 
