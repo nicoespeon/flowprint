@@ -1,5 +1,11 @@
 {
+	"plugins": ["node-workspace"],
 	"packages": {
+		"packages/core": {
+			"release-type": "node",
+			"component": "flowprint-core",
+			"skip-github-release": true
+		},
 		"packages/cli": {
 			"release-type": "node",
 			"component": "flowprint",
