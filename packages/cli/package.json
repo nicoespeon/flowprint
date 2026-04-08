@@ -1,6 +1,6 @@
 {
 	"name": "flowprint",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"description": "Trace data flow across TypeScript codebases",
 	"type": "module",
 	"bin": {

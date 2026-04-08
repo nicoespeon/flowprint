@@ -2,7 +2,7 @@
 	"name": "flowprint-vscode",
 	"displayName": "flowprint",
 	"description": "Trace data flow across TypeScript codebases",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"publisher": "nicoespeon",
 	"icon": "icon.png",
 	"engines": {

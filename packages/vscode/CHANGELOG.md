@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.1](https://github.com/nicoespeon/flowprint/compare/flowprint-vscode-v0.3.0...flowprint-vscode-v0.3.1) (2026-04-08)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * @flowprint/core bumped to 1.1.0
+
 ## [0.3.0](https://github.com/nicoespeon/flowprint/compare/flowprint-vscode-v0.2.0...flowprint-vscode-v0.3.0) (2026-04-08)
 
 
