@@ -4,7 +4,7 @@
 		"packages/core": {
 			"release-type": "node",
 			"component": "flowprint-core",
-			"skip-github-release": true
+			"changelog-path": "CHANGELOG.md"
 		},
 		"packages/cli": {
 			"release-type": "node",
