@@ -37,7 +37,7 @@
 	},
 	"license": "MIT",
 	"dependencies": {
-		"ts-morph": "27.0.2"
+		"ts-morph": "28.0.0"
 	},
 	"devDependencies": {
 		"@flowprint/core": "workspace:*"
